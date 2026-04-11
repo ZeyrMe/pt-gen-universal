@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CloudflareKVStorage } from '../../src/storage/cloudflare';
 import { EdgeOneKVStorage } from '../../src/storage/edgeone';
+import { MemoryStorage } from '../../src/storage/memory';
 import { NetlifyBlobsStorage } from '../../src/storage/netlify-blobs';
 import { RedisStorage } from '../../src/storage/redis';
 import { VercelRedisStorage } from '../../src/storage/vercel-redis';
@@ -125,5 +126,19 @@ describe('storage adapters', () => {
     vi.advanceTimersByTime(1100);
     expect(await storage.get('foo')).toBeNull();
     expect(store.map.size).toBe(0);
+  });
+
+  it('Memory storage clears previous ttl when overwriting without ttl', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+
+    const storage = new MemoryStorage();
+
+    await storage.put('foo', 'bar', 1);
+    vi.advanceTimersByTime(500);
+    await storage.put('foo', 'baz');
+    vi.advanceTimersByTime(600);
+
+    expect(await storage.get('foo')).toBe('baz');
   });
 });

@@ -26,6 +26,42 @@ describe('runtime env resolution', () => {
     expect(setup.appConfig.storageProvider).toBe('cloudflare-kv');
   });
 
+  it('falls back to Upstash REST on Cloudflare when KV binding is absent', () => {
+    const setup = createRuntimeSetup({
+      platform: 'cloudflare',
+      env: {
+        UPSTASH_REDIS_REST_URL: 'https://example.upstash.io',
+        UPSTASH_REDIS_REST_TOKEN: 'token',
+      },
+    });
+
+    expect(setup.storageProvider).toBe('vercel-redis');
+  });
+
+  it('auto-detects EdgeOne KV bindings', () => {
+    const env = { APIKEY: 'secret', PT_GEN_STORE: createKVBinding() };
+    const setup = createRuntimeSetup({
+      platform: 'edgeone',
+      env,
+      bindings: env,
+    });
+
+    expect(setup.storageProvider).toBe('edgeone-kv');
+    expect(setup.appConfig.storageProvider).toBe('edgeone-kv');
+  });
+
+  it('falls back to Upstash REST on EdgeOne when KV binding is absent', () => {
+    const setup = createRuntimeSetup({
+      platform: 'edgeone',
+      env: {
+        UPSTASH_REDIS_REST_URL: 'https://example.upstash.io',
+        UPSTASH_REDIS_REST_TOKEN: 'token',
+      },
+    });
+
+    expect(setup.storageProvider).toBe('vercel-redis');
+  });
+
   it('auto-detects Vercel Redis from REST env vars', () => {
     const setup = createRuntimeSetup({
       platform: 'vercel',
@@ -72,6 +108,30 @@ describe('runtime env resolution', () => {
     expect(setup.appConfig.rateLimitMode).toBe('best-effort');
     expect(setup.appConfig.rateLimitPerMinute).toBe(60);
     expect(setup.storeName).toBe('edge-cache');
+  });
+
+  it('reads Netlify Edge env via get/has accessors when toObject is unavailable', () => {
+    const values = {
+      APIKEY: 'secret',
+      STORAGE_PROVIDER: 'vercel-redis',
+      UPSTASH_REDIS_REST_URL: 'https://example.upstash.io',
+      UPSTASH_REDIS_REST_TOKEN: 'token',
+    };
+    const env = resolveNetlifyEnv({
+      Netlify: {
+        env: {
+          get: (key: string) => values[key as keyof typeof values],
+          has: (key: string) => key in values,
+        },
+      },
+    } as unknown as typeof globalThis);
+    const setup = createRuntimeSetup({
+      platform: 'netlify',
+      env,
+    });
+
+    expect(setup.appConfig.apikey).toBe('secret');
+    expect(setup.storageProvider).toBe('vercel-redis');
   });
 
   it('prefers explicit STORAGE_PROVIDER over auto detection', () => {

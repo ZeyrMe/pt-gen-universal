@@ -82,8 +82,10 @@ export class MemoryStorage {
   async put(key: string, value: string, ttl?: number): Promise<void> {
     this.maybeSweep();
     this.store.set(key, value);
-    if (ttl) {
+    if (ttl && ttl > 0) {
       this.expiries.set(key, Date.now() + ttl * 1000);
+    } else {
+      this.expiries.delete(key);
     }
     this.evictIfNeeded();
   }

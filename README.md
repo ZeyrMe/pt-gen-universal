@@ -207,6 +207,8 @@ pnpm dlx wrangler secret put INDIENOVA_COOKIE
 ### 当前默认策略
 
 - `STORAGE_PROVIDER=auto` 时按平台自动选择后端
+- Cloudflare / EdgeOne 在未绑定 `PT_GEN_STORE` 但提供了 Upstash REST 变量时，会自动回退到 `vercel-redis`
+- Netlify 默认仍优先 `netlify-blobs`；如需改用 Upstash REST，请显式设置 `STORAGE_PROVIDER=vercel-redis`
 - `RATE_LIMIT_MODE` 默认 `off`，即使设置了 `RATE_LIMIT_PER_MINUTE` 也不会启用请求级限流
 - 只有 `RATE_LIMIT_MODE=best-effort` 且 `RATE_LIMIT_PER_MINUTE > 0` 时，才启用实例内 best-effort 请求级限流
 - scraper 内部的 token bucket 仍然只是实例内 best-effort 节流，不是分布式全局限流

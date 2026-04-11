@@ -93,9 +93,17 @@ export function resolveStorageProvider(
 
   switch (platform) {
     case 'cloudflare':
-      return hasKVBinding(bindings?.PT_GEN_STORE) ? 'cloudflare-kv' : 'memory';
+      return hasKVBinding(bindings?.PT_GEN_STORE)
+        ? 'cloudflare-kv'
+        : hasVercelRedisEnv(values)
+          ? 'vercel-redis'
+          : 'memory';
     case 'edgeone':
-      return hasKVBinding(bindings?.PT_GEN_STORE) ? 'edgeone-kv' : 'memory';
+      return hasKVBinding(bindings?.PT_GEN_STORE)
+        ? 'edgeone-kv'
+        : hasVercelRedisEnv(values)
+          ? 'vercel-redis'
+          : 'memory';
     case 'vercel':
       return hasVercelRedisEnv(values) ? 'vercel-redis' : 'memory';
     case 'netlify':

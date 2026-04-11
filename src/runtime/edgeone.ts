@@ -1,5 +1,6 @@
 import { EdgeOneKVStorage } from '../storage/edgeone';
 import { MemoryStorage } from '../storage/memory';
+import { VercelRedisStorage } from '../storage/vercel-redis';
 import { createRuntimeApp } from './runtime-factory';
 
 export async function createEdgeOneRuntime(env: Record<string, unknown>) {
@@ -7,10 +8,16 @@ export async function createEdgeOneRuntime(env: Record<string, unknown>) {
     platform: 'edgeone',
     env,
     bindings: env,
-    createStorage: (setup) =>
-      setup.storageProvider === 'edgeone-kv' && env.PT_GEN_STORE
-        ? new EdgeOneKVStorage(env.PT_GEN_STORE)
-        : new MemoryStorage(),
+    createStorage: async (setup) => {
+      switch (setup.storageProvider) {
+        case 'edgeone-kv':
+          return env.PT_GEN_STORE ? new EdgeOneKVStorage(env.PT_GEN_STORE) : new MemoryStorage();
+        case 'vercel-redis':
+          return await VercelRedisStorage.fromEnv(setup.values);
+        default:
+          return new MemoryStorage();
+      }
+    },
     fallbackMessage: '[ptgen] Failed to initialize EdgeOne storage, falling back to memory.',
   });
 
