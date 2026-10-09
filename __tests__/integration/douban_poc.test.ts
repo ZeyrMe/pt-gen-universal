@@ -50,7 +50,7 @@ describe('Douban POC Integration', () => {
     expect(result).toContain('◎上映日期　1994-09-10(多伦多电影节) / 1994-10-14(美国)');
     expect(result).toContain('◎IMDb链接  https://www.imdb.com/title/tt0111161/');
     expect(result).toContain('◎豆瓣评分　9.7/10 from 3248842 users');
-    expect(result).toContain('◎导　　演　弗兰克·德拉邦特');
+    expect(result).toContain('◎导　　演　弗兰克·德拉邦特 Frank Darabont');
     expect(result).toContain('◎简　　介');
     expect(result).toContain('一场谋杀案使银行家安迪');
 

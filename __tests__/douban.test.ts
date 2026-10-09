@@ -28,9 +28,9 @@ describe('Douban HTML parsing (New Architecture)', () => {
     expect(String(data.douban_rating_average)).toBe('9.7');
     expect(String(data.douban_rating)).toContain('9.7/10');
     expect(data.genre).toContain('剧情');
-    expect(data.director).toContain('弗兰克·德拉邦特');
-    expect(data.writer).toEqual(['弗兰克·德拉邦特', '斯蒂芬·金']);
-    expect(data.cast).toEqual(['蒂姆·罗宾斯', '摩根·弗里曼']);
+    expect(data.director).toContain('弗兰克·德拉邦特 Frank Darabont');
+    expect(data.writer).toEqual(['弗兰克·德拉邦特 Frank Darabont', '斯蒂芬·金 Stephen King']);
+    expect(data.cast).toEqual(['蒂姆·罗宾斯 Tim Robbins', '摩根·弗里曼 Morgan Freeman']);
     expect(data.imdb_id).toBe('tt0111161');
     expect(data.duration).toBe('142分钟');
   });

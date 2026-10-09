@@ -21,6 +21,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check:homepage
       - run: pnpm run check:runtime-entries
+      - run: pnpm run check:worker
       - run: pnpm exec tsc --noEmit
       - run: pnpm run test:run
       - run: pnpm run build

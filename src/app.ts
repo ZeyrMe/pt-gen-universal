@@ -238,7 +238,7 @@ export function createApp(storage: Storage, config: AppConfig = {}) {
 
   // 初始化 Orchestrator 和 Controllers
   const orchestrator = new Orchestrator(config, DEFAULT_SITE_PLUGINS);
-  const mediaInfoService = new MediaInfoService(orchestrator);
+  const mediaInfoService = new MediaInfoService(orchestrator, config);
   const v1 = new V1Controller(orchestrator, mediaInfoService, config);
   const v2 = new V2Controller(orchestrator, mediaInfoService, config);
 

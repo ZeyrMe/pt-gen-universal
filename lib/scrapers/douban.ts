@@ -71,15 +71,25 @@ export class DoubanScraper implements Scraper {
 
     // The mobile page renders the crew list via JS, so enrich with the rexxar API.
     // Directors / writers / actors / languages / episodes may be missing from raw HTML.
-    try {
-      const rexxar = await this.fetchRexxarApi(id, config, headers, timeoutMs);
-      proxy_used = proxy_used || rexxar.proxyUsed;
-      data.proxy_used = proxy_used;
-      if (rexxar.data) {
-        data.rexxar_data = rexxar.data;
+    const subject = pageParser(html);
+    const isMobile = subject('.subject-header-wrap, .sub-title').length > 0;
+    if (isMobile && config.doubanIncludeRexxar !== false) {
+      try {
+        const rexxar = await this.fetchRexxarApi(
+          id,
+          config,
+          headers,
+          timeoutMs,
+          /\/tv\/|电视剧/.test(html)
+        );
+        proxy_used = proxy_used || rexxar.proxyUsed;
+        data.proxy_used = proxy_used;
+        if (rexxar.data) {
+          data.rexxar_data = rexxar.data;
+        }
+      } catch {
+        // Keep the HTML data when optional enrichment fails.
       }
-    } catch {
-      // ignore
     }
 
     // Awards and IMDb are enriched in Normalizer or here?
@@ -108,7 +118,7 @@ export class DoubanScraper implements Scraper {
     // We can do a quick regex extract of IMDb ID here to support that feature.
 
     // Quick extract IMDb ID
-    const $ = pageParser(html);
+    const $ = subject;
     const imdbAnchor = $('#info span.pl:contains("IMDb")');
     const imdbText = (imdbAnchor?.[0]?.nextSibling as any)?.data; // basic check
     if (imdbText) {
@@ -292,7 +302,8 @@ export class DoubanScraper implements Scraper {
     sid: string,
     config: AppConfig,
     headers: Record<string, string>,
-    timeoutMs: number
+    timeoutMs: number,
+    isTv: boolean
   ): Promise<{ data: any | null; proxyUsed: boolean }> {
     if (config.doubanIncludeRexxar === false) return { data: null, proxyUsed: false };
 
@@ -301,9 +312,11 @@ export class DoubanScraper implements Scraper {
       `https://m.douban.com/rexxar/api/v2/tv/${sid}?ck=&for_mobile=1`,
     ];
 
+    if (isTv) endpoints.reverse();
+    let usedProxy = false;
     for (const url of endpoints) {
       try {
-        await rateLimiter.acquire('douban', 2000);
+        if (!(await rateLimiter.acquire('douban', 2000))) break;
         const apiHeaders = {
           ...headers,
           Accept: 'application/json, text/plain, */*',
@@ -315,17 +328,26 @@ export class DoubanScraper implements Scraper {
           timeoutMs,
           config
         );
+        usedProxy ||= proxyUsed;
         if (!resp.ok) continue;
         const raw = await resp.text();
         if (this.looksLikeSecChallenge(resp, raw)) continue;
         const json = safeJsonParse(raw);
-        if (json) return { data: json, proxyUsed };
+        if (
+          json &&
+          typeof json === 'object' &&
+          !Array.isArray(json) &&
+          !json.error &&
+          (json.title || json.directors || json.actors)
+        ) {
+          return { data: json, proxyUsed: usedProxy };
+        }
       } catch {
         continue;
       }
     }
 
-    return { data: null, proxyUsed: false };
+    return { data: null, proxyUsed: usedProxy };
   }
 
   private async fetchAwards(

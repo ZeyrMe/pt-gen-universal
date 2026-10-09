@@ -182,8 +182,8 @@ pnpm dlx wrangler secret put INDIENOVA_COOKIE
 | `APIKEY` | API 访问密钥 |
 | `TMDB_API_KEY` | TMDB API 密钥 |
 | `DOUBAN_COOKIE` | 豆瓣 Cookie |
-| `DOUBAN_INCLUDE_REXXAR` | 是否调用豆瓣 rexxar API 补充演职员等字段，默认启用 |
-| `IMAGE_CDN_PREFIX` | 海报加速前缀；设置后在所有海报链接前拼接该前缀（不编码），未设置则保持原始链接不变，示例：`https://dbimgs.audiences.me/?` |
+| `DOUBAN_INCLUDE_REXXAR` | 是否调用豆瓣 rexxar API 补充移动页面资料，默认启用；桌面页面不调用 |
+| `IMAGE_CDN_PREFIX` | 海报加速前缀；仅在 BBCode/Markdown 海报链接前拼接该前缀（不编码）；JSON、搜索图片及其他图片保持原链接，未设置则保持原始链接不变，示例：`https://dbimgs.audiences.me/?` |
 | `INDIENOVA_COOKIE` | Indienova Cookie |
 | `DISABLE_SEARCH` | 是否禁用搜索 |
 | `CACHE_TTL` | 缓存 TTL，单位秒 |
@@ -264,9 +264,15 @@ curl -X POST "http://localhost:3000/api/v2/info" \
 
 ## 更新日志
 
+### 2026-10-09
+
+- 海报前缀通过统一运行时配置传入，支持无 Node 全局对象的 Edge 环境；明确其仅影响 BBCode/Markdown 海报。
+- Rexxar 开关接入环境变量，桌面页面不再请求补充接口，保留 JSON-LD 中的中英文人物姓名。
+- CI 增加实际 workerd 引擎的 API 请求检查，使用固定抓取响应验证 Edge 兼容、海报输出及 Rexxar 开关；不代表外部接口实时可用。
+
 ### 2026-08-28
 
-- **豆瓣演职员信息增强**：真实豆瓣页面（移动版）的演职员区块由 JS 异步渲染，导演/编剧/主演等无法从原始 HTML 获取。现通过豆瓣 rexxar API（`m.douban.com/rexxar/api/v2/{movie|tv}/{id}`）补充导演、主演、编剧、语言、地区、类型、集数等字段，覆盖电影与剧集，无需额外 Cookie。可用 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
+- **豆瓣演职员信息增强**：真实豆瓣页面（移动版）的演职员区块由 JS 异步渲染，导演/编剧/主演等无法从原始 HTML 获取。移动页面现通过豆瓣 rexxar API（`m.douban.com/rexxar/api/v2/{movie|tv}/{id}`）补充导演、主演、语言、地区、类型、集数等字段；若响应提供 writers，则补充编剧，支持电影与剧集的接口路径；可用性取决于豆瓣接口和部署网络。可用 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
 - **兼容 differential 发种插件**：differential 0.6.2 的 pter 插件期望 pt-gen 的 `director`/`writer`/`cast` 为 `[{name}]` 对象数组。V1 API（`/api/v1/info`，differential 通过 `/api/info` 调用）输出层现将其转换为对象数组，内部数据结构与 BBCode/Markdown 输出不受影响。
 
 ## 支持资源站点

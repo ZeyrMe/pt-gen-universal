@@ -133,6 +133,21 @@ export class DoubanNormalizer implements Normalizer {
     if (!ldJson) {
       const infoRows = this.parseInfoRows($);
       this.applyInfoRows(info, infoRows, $, title);
+      const poster = $('#mainpic img').attr('src') || '';
+      info.poster = poster.replace(/s(_ratio_poster|pic)/g, 'l$1').replace('img3', 'img1');
+      info.douban_rating_average = Number($('[property="v:average"]').first().text()) || 0;
+      info.douban_votes = Number($('[property="v:votes"]').first().text()) || 0;
+      if (info.douban_rating_average && info.douban_votes) {
+        info.douban_rating = `${info.douban_rating_average}/10 from ${info.douban_votes} users`;
+        info.ratings = {
+          douban: {
+            average: info.douban_rating_average,
+            votes: info.douban_votes,
+            formatted: info.douban_rating,
+            link,
+          },
+        };
+      }
       this.applyIntroAndTags(info, $);
       return info;
     }
@@ -167,9 +182,9 @@ export class DoubanNormalizer implements Normalizer {
     const ldWriter = ensureArray(ldJson['author']).map((x: any) => x.name || x);
     const ldCast = ensureArray(ldJson['actor']).map((x: any) => x.name || x);
 
-    info.director = this.rowLinks(infoRows, '导演', ldDirector);
-    info.writer = this.rowLinks(infoRows, '编剧', ldWriter);
-    info.cast = this.rowLinks(infoRows, '主演', ldCast);
+    info.director = ldDirector.length ? ldDirector : this.rowLinks(infoRows, '导演', []);
+    info.writer = ldWriter.length ? ldWriter : this.rowLinks(infoRows, '编剧', []);
+    info.cast = ldCast.length ? ldCast : this.rowLinks(infoRows, '主演', []);
 
     this.applyIntroAndTags(info, $);
 
@@ -326,6 +341,9 @@ export class DoubanNormalizer implements Normalizer {
     const directors = ensureArray(data.directors).map(name).filter(Boolean);
     if (directors.length) info.director = directors;
 
+    const writers = ensureArray(data.writers).map(name).filter(Boolean);
+    if (writers.length) info.writer = writers;
+
     const actors = ensureArray(data.actors).map(name).filter(Boolean);
     if (actors.length) info.cast = actors;
 
@@ -375,8 +393,8 @@ export class DoubanNormalizer implements Normalizer {
       }
     }
 
-    if (!info.poster && data.pic) {
-      const pic = data.pic;
+    if (!info.poster) {
+      const pic = data.pic || {};
       if (pic.normal || pic.large || pic.original) {
         info.poster = String(pic.large || pic.normal || pic.original || '');
       } else if (data.cover_url) {

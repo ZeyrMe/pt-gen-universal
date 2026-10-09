@@ -3,6 +3,7 @@ import { MarkdownFormatter } from '../../lib/formatters/markdown';
 import { Orchestrator } from '../../lib/orchestrator';
 import { AppError, ErrorCode } from '../../lib/errors';
 import type { MediaInfo } from '../../lib/types/schema';
+import type { AppConfig } from '../../lib/types/config';
 
 export interface MediaLocator {
   url?: string;
@@ -19,10 +20,16 @@ export interface MediaResolveResult {
 }
 
 export class MediaInfoService {
-  private readonly bbcodeFormatter = new BBCodeFormatter();
-  private readonly markdownFormatter = new MarkdownFormatter();
+  private readonly bbcodeFormatter: BBCodeFormatter;
+  private readonly markdownFormatter: MarkdownFormatter;
 
-  constructor(private readonly orchestrator: Orchestrator) {}
+  constructor(
+    private readonly orchestrator: Orchestrator,
+    config: AppConfig = {}
+  ) {
+    this.bbcodeFormatter = new BBCodeFormatter(config.imageCdnPrefix);
+    this.markdownFormatter = new MarkdownFormatter(config.imageCdnPrefix);
+  }
 
   async resolve(locator: MediaLocator): Promise<MediaResolveResult> {
     if (locator.url) {
