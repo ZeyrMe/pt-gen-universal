@@ -1,8 +1,9 @@
 import { handle } from 'hono/netlify';
 import { createNetlifyRuntime } from '../../src/runtime/netlify';
 
-let cachedHandlerPromise: Promise<(req: Request, context: any) => Response | Promise<Response>> | null =
-  null;
+let cachedHandlerPromise: Promise<
+  (req: Request, context: any) => Response | Promise<Response>
+> | null = null;
 
 const NETLIFY_ENV_KEYS = [
   'APIKEY',

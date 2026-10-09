@@ -1,11 +1,7 @@
 import { createApp } from '../app';
 import { MemoryStorage } from '../storage/memory';
 import type { Storage } from '../storage/storage';
-import {
-  createRuntimeSetup,
-  type NormalizedRuntimeSetup,
-  type RuntimePlatform,
-} from './env';
+import { createRuntimeSetup, type NormalizedRuntimeSetup, type RuntimePlatform } from './env';
 
 type StorageFactory = (setup: NormalizedRuntimeSetup) => Storage | Promise<Storage>;
 

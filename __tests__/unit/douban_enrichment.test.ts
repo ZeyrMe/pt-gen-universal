@@ -26,7 +26,7 @@ function mockSubject(
 }
 const config = { doubanCookie: 'bid=test', doubanIncludeAwards: false, doubanIncludeImdb: false };
 
-describe('PR #2 runtime and fallback regressions', () => {
+describe('Douban enrichment and output regressions', () => {
   it('passes deployed env configuration into formatters and exposes both poster URLs', () => {
     const setup = createRuntimeSetup({
       platform: 'cloudflare',
@@ -75,6 +75,21 @@ describe('PR #2 runtime and fallback regressions', () => {
     expect(raw.success).toBe(true);
     expect(raw.rexxar_data).toBeUndefined();
     expect(spy.mock.calls.filter(([url]) => String(url).includes('/rexxar/'))).toHaveLength(1);
+    expect(normalizer.normalize(raw, {}).chinese_title).toBeTruthy();
+  });
+  it('keeps HTML results when optional IMDb enrichment throws', async () => {
+    const spy = mockSubject(desktop);
+    spy.mockImplementation(async (url) => {
+      if (String(url).includes('p.media-imdb.com')) throw new Error('network unavailable');
+      return { response: new Response(desktop), proxyUsed: false, finalUrl: String(url) };
+    });
+    const raw = await new DoubanScraper().fetch('1292052', {
+      doubanCookie: 'bid=test',
+      doubanIncludeAwards: false,
+    });
+    expect(raw.success).toBe(true);
+    expect(raw.imdb_id).toBe('tt0111161');
+    expect(raw.imdb_data).toBeUndefined();
     expect(normalizer.normalize(raw, {}).chinese_title).toBeTruthy();
   });
   it('rejects API error payloads and still returns HTML data', async () => {

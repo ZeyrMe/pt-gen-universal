@@ -91,7 +91,10 @@ describe('static homepage api contract', () => {
   });
 
   it('lists every searchable registry source on the homepage and keeps indienova as direct-link only', () => {
-    const optionValues = Array.from(html.matchAll(/<option value="([^"]+)">/g), (match) => match[1]);
+    const optionValues = Array.from(
+      html.matchAll(/<option value="([^"]+)">/g),
+      (match) => match[1]
+    );
 
     expect(optionValues).toEqual(SEARCHABLE_SITE_IDS);
     expect(optionValues).not.toContain('indienova');

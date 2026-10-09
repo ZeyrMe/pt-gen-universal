@@ -28,8 +28,5 @@ export function createHomePage({
 }: HomePageOptions): string {
   if (searchEnabled) return STATIC_HOME_PAGE;
 
-  return STATIC_HOME_PAGE.replace(
-    DEFAULT_HOME_PAGE_CONFIG,
-    serializeHomePageConfig(false)
-  );
+  return STATIC_HOME_PAGE.replace(DEFAULT_HOME_PAGE_CONFIG, serializeHomePageConfig(false));
 }

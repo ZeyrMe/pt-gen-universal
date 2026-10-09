@@ -35,9 +35,12 @@ describe('app routes and auth smoke', () => {
 
   it('redirects legacy /?url= requests to v1 info', async () => {
     const app = createAuthApp();
-    const res = await app.request('http://localhost/?url=https://movie.douban.com/subject/1292052/', {
-      redirect: 'manual',
-    });
+    const res = await app.request(
+      'http://localhost/?url=https://movie.douban.com/subject/1292052/',
+      {
+        redirect: 'manual',
+      }
+    );
 
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(

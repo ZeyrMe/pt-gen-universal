@@ -29,7 +29,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "check": "pnpm run check:homepage && pnpm run check:runtime-entries && pnpm run check:worker && pnpm exec tsc --noEmit && pnpm run test:run && pnpm run build",
+    "check": "pnpm run format:check && pnpm run check:homepage && pnpm run check:runtime-entries && pnpm run check:worker && pnpm exec tsc --noEmit && pnpm run test:run && pnpm run build",
     "check:worker": "node scripts/smoke-worker.mjs"
   },
   "engines": {
@@ -43,8 +43,8 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@netlify/blobs": "^10.7.4",
     "@hono/node-server": "^1.13.7",
+    "@netlify/blobs": "^10.7.4",
     "@upstash/redis": "^1.37.0",
     "cheerio": "^1.1.2",
     "hono": "^4.11.7",
@@ -53,6 +53,8 @@
   },
   "devDependencies": {
     "@types/node": "^25.0.9",
+    "esbuild": "0.27.7",
+    "miniflare": "4.20260401.0",
     "prettier": "^3.4.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

@@ -18,7 +18,9 @@ export interface NormalizedRuntimeSetup {
   values: Record<string, string | undefined>;
 }
 
-export function normalizeEnvValues(env: Record<string, unknown>): Record<string, string | undefined> {
+export function normalizeEnvValues(
+  env: Record<string, unknown>
+): Record<string, string | undefined> {
   const values: Record<string, string | undefined> = {};
 
   for (const [key, value] of Object.entries(env)) {
@@ -43,15 +45,17 @@ export function normalizeEnvValues(env: Record<string, unknown>): Record<string,
 function hasKVBinding(value: unknown): boolean {
   return Boolean(
     value &&
-      typeof value === 'object' &&
-      typeof (value as any).get === 'function' &&
-      typeof (value as any).put === 'function' &&
-      typeof (value as any).delete === 'function'
+    typeof value === 'object' &&
+    typeof (value as any).get === 'function' &&
+    typeof (value as any).put === 'function' &&
+    typeof (value as any).delete === 'function'
   );
 }
 
 export function parseStorageProvider(value: unknown): StorageProvider | undefined {
-  const raw = String(value || '').trim().toLowerCase();
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase();
   if (!raw) return undefined;
 
   if (
@@ -70,7 +74,9 @@ export function parseStorageProvider(value: unknown): StorageProvider | undefine
 }
 
 export function parseRateLimitMode(value: unknown): RateLimitMode | undefined {
-  const raw = String(value || '').trim().toLowerCase();
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase();
   if (!raw) return undefined;
   if (raw === 'off' || raw === 'best-effort') return raw;
   return undefined;
@@ -79,7 +85,7 @@ export function parseRateLimitMode(value: unknown): RateLimitMode | undefined {
 function hasVercelRedisEnv(values: Record<string, string | undefined>): boolean {
   return Boolean(
     (values.KV_REST_API_URL && values.KV_REST_API_TOKEN) ||
-      (values.UPSTASH_REDIS_REST_URL && values.UPSTASH_REDIS_REST_TOKEN)
+    (values.UPSTASH_REDIS_REST_URL && values.UPSTASH_REDIS_REST_TOKEN)
   );
 }
 
@@ -127,7 +133,7 @@ export function createRuntimeSetup(context: RuntimeContext): NormalizedRuntimeSe
   );
   const rateLimitMode = parseRateLimitMode(values.RATE_LIMIT_MODE) || 'off';
   const rateLimitPerMinute =
-    rateLimitMode === 'best-effort' ? parseNumberEnv(values.RATE_LIMIT_PER_MINUTE) ?? 0 : 0;
+    rateLimitMode === 'best-effort' ? (parseNumberEnv(values.RATE_LIMIT_PER_MINUTE) ?? 0) : 0;
 
   const appConfig: AppConfig = {
     apikey: values.APIKEY,

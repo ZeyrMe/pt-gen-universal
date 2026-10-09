@@ -12,14 +12,14 @@
 
 ## 平台矩阵
 
-| 平台 | 运行时 | 默认缓存后端 | 状态 |
-| --- | --- | --- | --- |
-| Cloudflare Workers | Edge | Cloudflare KV | 推荐主平台 |
-| Vercel | Edge Runtime | Upstash / Marketplace Redis | 支持 |
-| Netlify | Edge Functions | Netlify Blobs | 支持 |
-| EdgeOne | Edge Functions | Pages KV | 支持 |
-| Railway | Node.js Service | Redis | Node fallback |
-| Zeabur | Node.js Service | Redis | Node fallback |
+| 平台               | 运行时          | 默认缓存后端                | 状态          |
+| ------------------ | --------------- | --------------------------- | ------------- |
+| Cloudflare Workers | Edge            | Cloudflare KV               | 推荐主平台    |
+| Vercel             | Edge Runtime    | Upstash / Marketplace Redis | 支持          |
+| Netlify            | Edge Functions  | Netlify Blobs               | 支持          |
+| EdgeOne            | Edge Functions  | Pages KV                    | 支持          |
+| Railway            | Node.js Service | Redis                       | Node fallback |
+| Zeabur             | Node.js Service | Redis                       | Node fallback |
 
 > 注意：Vercel 官方在 2025-12-08 更新的 Edge Runtime 文档中已经更推荐 Node.js runtime。本项目仍提供 Vercel Edge 入口，但 Cloudflare 仍然是首推平台。
 
@@ -33,7 +33,7 @@
 
 [![Use EdgeOne Pages to deploy](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?repository-url=https%3A%2F%2Fgithub.com%2FYunFeng86%2Fpt-gen-universal&install-command=npx%20pnpm%409.15.9%20install%20--frozen-lockfile&build-command=npx%20pnpm%409.15.9%20run%20build%3Aedgeone&output-directory=.)
 
-### 合并后发布模板再启用（TODO）
+### 待发布的一键模板
 
 - Railway：仓库内已提供 `nixpacks.toml`，但真正的公开一键模板链接需要在 Railway 控制台创建并发布模板后生成
 - Zeabur：仓库内已提供 `zeabur-template.yaml`，Deploy Button 需要在 Zeabur Dashboard 创建模板后复制
@@ -177,38 +177,40 @@ pnpm dlx wrangler secret put INDIENOVA_COOKIE
 
 ### 通用变量
 
-| 变量 | 说明 |
-| --- | --- |
-| `APIKEY` | API 访问密钥 |
-| `TMDB_API_KEY` | TMDB API 密钥 |
-| `DOUBAN_COOKIE` | 豆瓣 Cookie |
-| `DOUBAN_INCLUDE_REXXAR` | 是否调用豆瓣移动端内部 Rexxar API 补充移动页面缺失资料，默认启用；桌面页面不调用 |
-| `IMAGE_CDN_PREFIX` | 海报代理入口；BBCode/Markdown 使用代理地址，JSON 保留 `poster` 并在 `poster_proxy` 返回代理地址；直接拼接且不编码，示例：`https://dbimgs.audiences.me/?` |
-| `INDIENOVA_COOKIE` | Indienova Cookie |
-| `DISABLE_SEARCH` | 是否禁用搜索 |
-| `CACHE_TTL` | 缓存 TTL，单位秒 |
-| `STORAGE_PROVIDER` | `auto` / `memory` / `cloudflare-kv` / `vercel-redis` / `netlify-blobs` / `edgeone-kv` / `redis` |
-| `CACHE_STORE_NAME` | 逻辑缓存名，默认 `pt-gen-cache` |
-| `RATE_LIMIT_MODE` | `off` / `best-effort`；`off` 会强制关闭请求级限流 |
-| `RATE_LIMIT_PER_MINUTE` | 请求级限流阈值，仅在 `RATE_LIMIT_MODE=best-effort` 时生效 |
-| `REQUEST_TIMEOUT_MS` | 通用抓取超时 |
-| `PROXY_URL` | 可选抓取中转 |
-| `PROXY_ALLOW_SENSITIVE_HEADERS` | 是否允许转发敏感请求头到中转 |
+| 变量                            | 说明                                                                                                                                                     |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `APIKEY`                        | API 访问密钥                                                                                                                                             |
+| `TMDB_API_KEY`                  | TMDB API 密钥                                                                                                                                            |
+| `DOUBAN_COOKIE`                 | 豆瓣 Cookie                                                                                                                                              |
+| `DOUBAN_INCLUDE_REXXAR`         | 是否调用豆瓣移动端内部 Rexxar API 补充移动页面缺失资料，默认启用；桌面页面不调用                                                                         |
+| `IMAGE_CDN_PREFIX`              | 海报代理入口；BBCode/Markdown 使用代理地址，JSON 保留 `poster` 并在 `poster_proxy` 返回代理地址；直接拼接且不编码，示例：`https://dbimgs.audiences.me/?` |
+| `INDIENOVA_COOKIE`              | Indienova Cookie                                                                                                                                         |
+| `DISABLE_SEARCH`                | 是否禁用搜索                                                                                                                                             |
+| `CACHE_TTL`                     | 缓存 TTL，单位秒                                                                                                                                         |
+| `STORAGE_PROVIDER`              | `auto` / `memory` / `cloudflare-kv` / `vercel-redis` / `netlify-blobs` / `edgeone-kv` / `redis`                                                          |
+| `CACHE_STORE_NAME`              | 逻辑缓存名，默认 `pt-gen-cache`                                                                                                                          |
+| `RATE_LIMIT_MODE`               | `off` / `best-effort`；`off` 会强制关闭请求级限流                                                                                                        |
+| `RATE_LIMIT_PER_MINUTE`         | 请求级限流阈值，仅在 `RATE_LIMIT_MODE=best-effort` 时生效                                                                                                |
+| `REQUEST_TIMEOUT_MS`            | 通用抓取超时                                                                                                                                             |
+| `PROXY_URL`                     | 可选抓取中转                                                                                                                                             |
+| `PROXY_ALLOW_SENSITIVE_HEADERS` | 是否允许转发敏感请求头到中转                                                                                                                             |
 
 `IMAGE_CDN_PREFIX` 不是任意 CDN 域名，而是必须支持直接拼接目标图片 URL 的代理入口。例如原海报为 `https://img1.doubanio.com/poster.webp`，配置为 `https://dbimgs.audiences.me/?` 时，输出代理地址为 `https://dbimgs.audiences.me/?https://img1.doubanio.com/poster.webp`。未配置时 `poster_proxy` 为 `null`。使用第三方代理前应确认其稳定性和隐私策略。
 
-Rexxar 是豆瓣移动端使用的内部接口，不是承诺稳定的开放 API。本项目仅在桌面页面抓取失败并回退到移动页面时调用它，并将其作为补充数据源：HTML 中已有的数据会保留；演职员仅在 HTML 缺失时补充；语言、地区、类型、日期和别名等集合字段会合并去重。Rexxar 请求使用独立的 3 秒超时，并通过豆瓣从电影端点到剧集端点的重定向在一次请求内兼容两种类型；失败时直接保留 HTML 结果。可通过 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
+Rexxar 是豆瓣移动端使用的内部接口，不是承诺稳定的开放 API。本项目仅在桌面页面抓取失败并回退到移动页面时调用它，并将其作为补充数据源：HTML 中已有的数据会保留；演职员仅在 HTML 缺失时补充；语言、地区、类型、日期和别名等集合字段会合并去重；评分均值和投票数按缺失字段分别补齐。Rexxar 使用单次 `/movie/` 请求，剧集由豆瓣重定向到 `/tv/`，整个补充请求最多等待 3 秒；失败或限流额度不足时直接保留 HTML 结果。可通过 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
+
+Rexxar 返回字段会随豆瓣当前页面状态变化。例如上游未提供 `writers` 或历史上映日期时，本项目不会推测缺失数据；需要完整字段的调用方应允许对应数组为空。
 
 ### 平台存储变量
 
-| 变量 | 平台 | 说明 |
-| --- | --- | --- |
-| `PT_GEN_STORE` | Cloudflare / EdgeOne | KV 绑定 |
-| `UPSTASH_REDIS_REST_URL` | Vercel / 任意支持 REST 的环境 | Upstash REST 地址 |
-| `UPSTASH_REDIS_REST_TOKEN` | Vercel / 任意支持 REST 的环境 | Upstash REST Token |
-| `KV_REST_API_URL` | Vercel 兼容别名 | REST 地址兼容变量 |
-| `KV_REST_API_TOKEN` | Vercel 兼容别名 | REST Token 兼容变量 |
-| `REDIS_URL` | Railway / Zeabur / Node | Redis 连接串 |
+| 变量                       | 平台                          | 说明                |
+| -------------------------- | ----------------------------- | ------------------- |
+| `PT_GEN_STORE`             | Cloudflare / EdgeOne          | KV 绑定             |
+| `UPSTASH_REDIS_REST_URL`   | Vercel / 任意支持 REST 的环境 | Upstash REST 地址   |
+| `UPSTASH_REDIS_REST_TOKEN` | Vercel / 任意支持 REST 的环境 | Upstash REST Token  |
+| `KV_REST_API_URL`          | Vercel 兼容别名               | REST 地址兼容变量   |
+| `KV_REST_API_TOKEN`        | Vercel 兼容别名               | REST Token 兼容变量 |
+| `REDIS_URL`                | Railway / Zeabur / Node       | Redis 连接串        |
 
 ### 当前默认策略
 
@@ -274,25 +276,26 @@ curl -X POST "http://localhost:3000/api/v2/info" \
 
 - 海报前缀通过统一运行时配置传入，支持无 Node 全局对象的 Edge 环境；JSON 保留原始 `poster`，并新增可空的 `poster_proxy`。
 - Rexxar 开关接入环境变量，桌面页面不再请求补充接口；移动页面先解析 HTML，再合并 Rexxar 补充数据，避免覆盖原始上映日期和演职员。
+- Rexxar 改为单次请求和 3 秒超时；评分均值与投票数按缺失字段补齐，可选 IMDb 评分失败时保留豆瓣主体结果。
 - 响应缓存按 schema/parser 版本、海报代理配置和 Rexxar 开关隔离，避免部署后混用新旧响应。
 - CI 增加实际 workerd 引擎的 API 请求检查，使用固定抓取响应验证 Edge 兼容、海报输出及 Rexxar 开关；不代表外部接口实时可用。
 
 ### 2026-08-28
 
-- **豆瓣演职员信息增强**：真实豆瓣页面（移动版）的演职员区块由 JS 异步渲染，导演/编剧/主演等无法从原始 HTML 获取。移动页面现通过豆瓣 rexxar API（`m.douban.com/rexxar/api/v2/{movie|tv}/{id}`）补充导演、主演、语言、地区、类型、集数等字段；若响应提供 writers，则补充编剧，支持电影与剧集的接口路径；可用性取决于豆瓣接口和部署网络。可用 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
+- **豆瓣演职员信息增强**：移动页面引入豆瓣 Rexxar API，补充原始 HTML 中缺失的导演、主演、语言、地区、类型和集数等字段；若响应提供 `writers`，则补充编剧。
 - **兼容 differential 发种插件**：differential 0.6.2 的 pter 插件期望 pt-gen 的 `director`/`writer`/`cast` 为 `[{name}]` 对象数组。V1 API（`/api/v1/info`，differential 通过 `/api/info` 调用）输出层现将其转换为对象数组，内部数据结构与 BBCode/Markdown 输出不受影响。
 
 ## 支持资源站点
 
-| 站点 | 搜索 | 示例 |
-| --- | --- | --- |
-| douban | ✅ | `https://movie.douban.com/subject/1292052/` |
-| imdb | ✅ | `https://www.imdb.com/title/tt0111161/` |
-| bangumi | ✅ | `https://bgm.tv/subject/12345` |
-| tmdb | ✅ | `https://www.themoviedb.org/movie/278` |
-| steam | ✅ | `https://store.steampowered.com/app/730/` |
-| indienova | ❌ | `https://indienova.com/game/game-name` |
-| gog | ✅ | `https://www.gog.com/game/cyberpunk_2077` |
+| 站点      | 搜索 | 示例                                        |
+| --------- | ---- | ------------------------------------------- |
+| douban    | ✅   | `https://movie.douban.com/subject/1292052/` |
+| imdb      | ✅   | `https://www.imdb.com/title/tt0111161/`     |
+| bangumi   | ✅   | `https://bgm.tv/subject/12345`              |
+| tmdb      | ✅   | `https://www.themoviedb.org/movie/278`      |
+| steam     | ✅   | `https://store.steampowered.com/app/730/`   |
+| indienova | ❌   | `https://indienova.com/game/game-name`      |
+| gog       | ✅   | `https://www.gog.com/game/cyberpunk_2077`   |
 
 首页关键词搜索当前与实际能力保持一致，提供 `douban`、`imdb`、`bangumi`、`tmdb`、`steam`、`gog` 六个来源；`indienova` 仍支持直接粘贴链接生成详情，但不支持关键词搜索。
 
@@ -318,14 +321,10 @@ edge-functions/        # EdgeOne Edge 入口
 ## 开发与验证
 
 ```bash
-pnpm run check:homepage
-pnpm run check:runtime-entries
-pnpm exec tsc --noEmit
-pnpm run test:run
-pnpm run build
+pnpm run check
 ```
 
-GitHub Actions 已改为使用 `pnpm 9.15.9 + Node 20.19.0`。
+`pnpm run check` 会依次执行格式、主页同步、运行时入口、workerd、TypeScript、单元测试和 Wrangler 构建检查。GitHub Actions 使用相同入口以及 `pnpm 9.15.9 + Node 20.19.0`，避免本地与 CI 检查项漂移。
 
 ## 平台限制
 

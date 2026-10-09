@@ -1,13 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
+import { Miniflare } from 'miniflare';
 
-// Use Wrangler's pinned toolchain, including its actual workerd runtime.
-const require = createRequire(import.meta.url);
-const wranglerRequire = createRequire(require.resolve('wrangler/package.json'));
-const { build } = wranglerRequire('esbuild');
-const { Miniflare } = wranglerRequire('miniflare');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const desktop = readFileSync(new URL('../__tests__/fixtures/douban.html', import.meta.url), 'utf8');
 const mobile = readFileSync(

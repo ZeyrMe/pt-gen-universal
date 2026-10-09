@@ -92,11 +92,6 @@ export class DoubanScraper implements Scraper {
       }
     }
 
-    // Awards and IMDb are enriched in Normalizer or here?
-    // Usually scraper just gets raw data.
-    // In the legacy code, gen_douban does fetching awards/imdb.
-    // To keep it clean, Scraper should fetch everything possible and return it in RawData.
-
     try {
       const awards = await this.fetchAwards(id, config, headers, timeoutMs);
       proxy_used = proxy_used || awards.proxyUsed;
@@ -108,27 +103,21 @@ export class DoubanScraper implements Scraper {
       // ignore
     }
 
-    // Checking IMDb ID from HTML to fetch IMDb rating is a bit tricky because we need to parse HTML first.
-    // Ideally Scraper returns HTML, Normalizer parses it.
-    // But if we need IMDb data *during* scraping, we need to parse specific bits.
-    // Let's parse IMDb ID here quickly or verify if we can do 2-step.
-    // For now, let's keep it simple: Scraper only fetches the main page.
-    // If we need secondary fetches based on content, we might need a "Smart Scraper" or let Normalizer request more?
-    // Actually, `gen_douban` logic does parse to get `imdb_id` then fetches `imdb`.
-    // We can do a quick regex extract of IMDb ID here to support that feature.
-
-    // Quick extract IMDb ID
     const $ = subject;
     const imdbAnchor = $('#info span.pl:contains("IMDb")');
     const imdbText = (imdbAnchor?.[0]?.nextSibling as any)?.data; // basic check
     if (imdbText) {
       const imdbId = String(imdbText).trim();
       data.imdb_id = imdbId;
-      const imdb = await this.fetchImdbRating(imdbId, config, timeoutMs);
-      proxy_used = proxy_used || imdb.proxyUsed;
-      data.proxy_used = proxy_used;
-      if (imdb.data) {
-        data.imdb_data = imdb.data;
+      try {
+        const imdb = await this.fetchImdbRating(imdbId, config, timeoutMs);
+        proxy_used = proxy_used || imdb.proxyUsed;
+        data.proxy_used = proxy_used;
+        if (imdb.data) {
+          data.imdb_data = imdb.data;
+        }
+      } catch {
+        // Keep the Douban result when optional IMDb enrichment fails.
       }
     }
 
