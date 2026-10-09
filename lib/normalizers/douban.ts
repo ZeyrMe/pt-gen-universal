@@ -387,20 +387,28 @@ export class DoubanNormalizer implements Normalizer {
     }
 
     const rating = data.rating;
-    if (rating && !info.douban_rating_average) {
-      info.douban_rating_average = Number(rating.value) || 0;
-      info.douban_votes = Number(rating.count) || 0;
-      if (info.douban_rating_average && info.douban_votes) {
-        info.douban_rating = `${info.douban_rating_average}/10 from ${info.douban_votes} users`;
-        info.ratings = {
-          douban: {
-            average: info.douban_rating_average,
-            votes: info.douban_votes,
-            formatted: info.douban_rating,
-            link: info.douban_link || '',
-          },
-        };
+    if (rating) {
+      const rexxarAverage = Number(rating.value) || 0;
+      const rexxarVotes = Number(rating.count) || 0;
+      if (!info.douban_rating_average && rexxarAverage) {
+        info.douban_rating_average = rexxarAverage;
       }
+      if (!info.douban_votes && rexxarVotes) {
+        info.douban_votes = rexxarVotes;
+      }
+    }
+
+    if (info.douban_rating_average && info.douban_votes) {
+      info.douban_rating = `${info.douban_rating_average}/10 from ${info.douban_votes} users`;
+      info.ratings = {
+        ...info.ratings,
+        douban: {
+          average: info.douban_rating_average,
+          votes: info.douban_votes,
+          formatted: info.douban_rating,
+          link: info.douban_link || '',
+        },
+      };
     }
 
     if (!info.poster) {

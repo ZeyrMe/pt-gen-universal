@@ -56,15 +56,16 @@ describe('PR #2 runtime and fallback regressions', () => {
     await new DoubanScraper().fetch('1292052', { ...config, ...setup.appConfig });
     expect(spy.mock.calls.some(([url]) => String(url).includes('/rexxar/'))).toBe(false);
   });
-  it('uses TV endpoint first when mobile HTML identifies a TV subject', async () => {
+  it('uses one movie endpoint request and lets Douban redirect TV subjects', async () => {
     const spy = mockSubject(mobile + '<a href="/tv/subject/1292052/">电视剧</a>');
     const raw = await new DoubanScraper().fetch('1292052', config);
     const calls = spy.mock.calls.filter(([url]) => String(url).includes('/rexxar/'));
     expect(calls).toHaveLength(1);
-    expect(String(calls[0][0])).toContain('/rexxar/api/v2/tv/');
+    expect(String(calls[0][0])).toContain('/rexxar/api/v2/movie/');
+    expect(calls[0][2]).toBe(3000);
     expect(normalizer.normalize(raw, {}).director).toEqual(['导演']);
   });
-  it('keeps HTML results when both enrichment requests throw', async () => {
+  it('keeps HTML results without retrying when Rexxar throws', async () => {
     const spy = mockSubject(mobile);
     spy.mockImplementation(async (url) => {
       if (String(url).includes('/rexxar/')) throw new Error('network unavailable');
@@ -73,6 +74,7 @@ describe('PR #2 runtime and fallback regressions', () => {
     const raw = await new DoubanScraper().fetch('1292052', config);
     expect(raw.success).toBe(true);
     expect(raw.rexxar_data).toBeUndefined();
+    expect(spy.mock.calls.filter(([url]) => String(url).includes('/rexxar/'))).toHaveLength(1);
     expect(normalizer.normalize(raw, {}).chinese_title).toBeTruthy();
   });
   it('rejects API error payloads and still returns HTML data', async () => {
@@ -80,23 +82,6 @@ describe('PR #2 runtime and fallback regressions', () => {
     const raw = await new DoubanScraper().fetch('1292052', config);
     expect(raw.rexxar_data).toBeUndefined();
     expect(normalizer.normalize(raw, {}).chinese_title).toBeTruthy();
-  });
-  it('falls back to TV when movie API fails', async () => {
-    const spy = mockSubject(mobile);
-    spy.mockImplementation(async (url) => ({
-      response: new Response(
-        String(url).includes('/rexxar/api/v2/movie/')
-          ? ''
-          : String(url).includes('/rexxar/')
-            ? JSON.stringify({ title: 'test', actors: [{ name: '演员' }] })
-            : mobile,
-        { status: String(url).includes('/rexxar/api/v2/movie/') ? 404 : 200 }
-      ),
-      proxyUsed: false,
-      finalUrl: String(url),
-    }));
-    const raw = await new DoubanScraper().fetch('1292052', config);
-    expect(normalizer.normalize(raw, {}).cast).toEqual(['演员']);
   });
   it('supports optional writers and cover_url without requiring pic', () => {
     const noPoster = mobile.replace(/<img[^>]*>/g, '');
@@ -133,5 +118,19 @@ describe('PR #2 runtime and fallback regressions', () => {
     const info = normalize(html);
     expect(info.poster).toBe('https://example.com/poster.jpg');
     expect(info.ratings?.douban?.formatted).toBe('9.7/10 from 123 users');
+  });
+  it('fills only the missing vote count from Rexxar rating data', () => {
+    const html = mobile.replace(/<meta itemprop="reviewCount"[^>]*>/, '');
+    const info = normalize(html, { rexxar_data: { rating: { value: 8.1, count: 123 } } });
+    expect(info.douban_rating_average).toBe(9.7);
+    expect(info.douban_votes).toBe(123);
+    expect(info.ratings?.douban?.formatted).toBe('9.7/10 from 123 users');
+  });
+  it('fills only the missing average from Rexxar rating data', () => {
+    const html = mobile.replace(/<meta itemprop="ratingValue"[^>]*>/, '');
+    const info = normalize(html, { rexxar_data: { rating: { value: 8.1, count: 123 } } });
+    expect(info.douban_rating_average).toBe(8.1);
+    expect(info.douban_votes).toBe(3249389);
+    expect(info.ratings?.douban?.formatted).toBe('8.1/10 from 3249389 users');
   });
 });

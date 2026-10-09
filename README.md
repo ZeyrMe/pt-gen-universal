@@ -197,7 +197,7 @@ pnpm dlx wrangler secret put INDIENOVA_COOKIE
 
 `IMAGE_CDN_PREFIX` 不是任意 CDN 域名，而是必须支持直接拼接目标图片 URL 的代理入口。例如原海报为 `https://img1.doubanio.com/poster.webp`，配置为 `https://dbimgs.audiences.me/?` 时，输出代理地址为 `https://dbimgs.audiences.me/?https://img1.doubanio.com/poster.webp`。未配置时 `poster_proxy` 为 `null`。使用第三方代理前应确认其稳定性和隐私策略。
 
-Rexxar 是豆瓣移动端使用的内部接口，不是承诺稳定的开放 API。本项目仅在桌面页面抓取失败并回退到移动页面时调用它，并将其作为补充数据源：HTML 中已有的数据会保留；演职员仅在 HTML 缺失时补充；语言、地区、类型、日期和别名等集合字段会合并去重。可通过 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
+Rexxar 是豆瓣移动端使用的内部接口，不是承诺稳定的开放 API。本项目仅在桌面页面抓取失败并回退到移动页面时调用它，并将其作为补充数据源：HTML 中已有的数据会保留；演职员仅在 HTML 缺失时补充；语言、地区、类型、日期和别名等集合字段会合并去重。Rexxar 请求使用独立的 3 秒超时，并通过豆瓣从电影端点到剧集端点的重定向在一次请求内兼容两种类型；失败时直接保留 HTML 结果。可通过 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
 
 ### 平台存储变量
 

@@ -11,6 +11,7 @@ import { NONE_EXIST_ERROR } from '../utils/error';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_WARMUP_TIMEOUT_MS = 4_000;
+const DEFAULT_REXXAR_TIMEOUT_MS = 3_000;
 const HAS_GETSETCOOKIE =
   typeof Headers !== 'undefined' && typeof Headers.prototype?.getSetCookie === 'function';
 
@@ -79,8 +80,7 @@ export class DoubanScraper implements Scraper {
           id,
           config,
           headers,
-          timeoutMs,
-          /\/tv\/|电视剧/.test(html)
+          Math.min(timeoutMs, DEFAULT_REXXAR_TIMEOUT_MS)
         );
         proxy_used = proxy_used || rexxar.proxyUsed;
         data.proxy_used = proxy_used;
@@ -302,52 +302,45 @@ export class DoubanScraper implements Scraper {
     sid: string,
     config: AppConfig,
     headers: Record<string, string>,
-    timeoutMs: number,
-    isTv: boolean
+    timeoutMs: number
   ): Promise<{ data: any | null; proxyUsed: boolean }> {
     if (config.doubanIncludeRexxar === false) return { data: null, proxyUsed: false };
 
-    const endpoints = [
-      `https://m.douban.com/rexxar/api/v2/movie/${sid}?ck=&for_mobile=1`,
-      `https://m.douban.com/rexxar/api/v2/tv/${sid}?ck=&for_mobile=1`,
-    ];
-
-    if (isTv) endpoints.reverse();
-    let usedProxy = false;
-    for (const url of endpoints) {
-      try {
-        if (!(await rateLimiter.acquire('douban', 2000))) break;
-        const apiHeaders = {
-          ...headers,
-          Accept: 'application/json, text/plain, */*',
-          Referer: `https://m.douban.com/movie/subject/${sid}/`,
-        };
-        const { response: resp, proxyUsed } = await fetchWithTimeout(
-          url,
-          { headers: apiHeaders },
-          timeoutMs,
-          config
-        );
-        usedProxy ||= proxyUsed;
-        if (!resp.ok) continue;
-        const raw = await resp.text();
-        if (this.looksLikeSecChallenge(resp, raw)) continue;
-        const json = safeJsonParse(raw);
-        if (
-          json &&
-          typeof json === 'object' &&
-          !Array.isArray(json) &&
-          !json.error &&
-          (json.title || json.directors || json.actors)
-        ) {
-          return { data: json, proxyUsed: usedProxy };
-        }
-      } catch {
-        continue;
-      }
+    // Douban redirects TV subjects from /movie/ to /tv/. Fetch follows redirects by default,
+    // so one request covers both types without doubling the optional enrichment timeout.
+    const url = `https://m.douban.com/rexxar/api/v2/movie/${sid}?ck=&for_mobile=1`;
+    if (!(await rateLimiter.tryAcquire('douban'))) {
+      return { data: null, proxyUsed: false };
     }
 
-    return { data: null, proxyUsed: usedProxy };
+    const apiHeaders = {
+      ...headers,
+      Accept: 'application/json, text/plain, */*',
+      Referer: `https://m.douban.com/movie/subject/${sid}/`,
+    };
+    const { response: resp, proxyUsed } = await fetchWithTimeout(
+      url,
+      { headers: apiHeaders },
+      timeoutMs,
+      config
+    );
+    if (!resp.ok) return { data: null, proxyUsed };
+
+    const raw = await resp.text();
+    if (this.looksLikeSecChallenge(resp, raw)) return { data: null, proxyUsed };
+
+    const json = safeJsonParse(raw);
+    if (
+      json &&
+      typeof json === 'object' &&
+      !Array.isArray(json) &&
+      !json.error &&
+      (json.title || json.directors || json.actors)
+    ) {
+      return { data: json, proxyUsed };
+    }
+
+    return { data: null, proxyUsed };
   }
 
   private async fetchAwards(
