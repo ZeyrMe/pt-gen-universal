@@ -3,6 +3,8 @@ import { MarkdownFormatter } from '../../lib/formatters/markdown';
 import { Orchestrator } from '../../lib/orchestrator';
 import { AppError, ErrorCode } from '../../lib/errors';
 import type { MediaInfo } from '../../lib/types/schema';
+import type { AppConfig } from '../../lib/types/config';
+import { getPosterUrl } from '../../lib/utils/poster';
 
 export interface MediaLocator {
   url?: string;
@@ -18,11 +20,23 @@ export interface MediaResolveResult {
   info: MediaInfo;
 }
 
-export class MediaInfoService {
-  private readonly bbcodeFormatter = new BBCodeFormatter();
-  private readonly markdownFormatter = new MarkdownFormatter();
+export type PublicMediaInfo = MediaInfo & {
+  poster_proxy: string | null;
+};
 
-  constructor(private readonly orchestrator: Orchestrator) {}
+export class MediaInfoService {
+  private readonly bbcodeFormatter: BBCodeFormatter;
+  private readonly markdownFormatter: MarkdownFormatter;
+  private readonly imageCdnPrefix?: string;
+
+  constructor(
+    private readonly orchestrator: Orchestrator,
+    config: AppConfig = {}
+  ) {
+    this.imageCdnPrefix = config.imageCdnPrefix?.trim() || undefined;
+    this.bbcodeFormatter = new BBCodeFormatter(this.imageCdnPrefix);
+    this.markdownFormatter = new MarkdownFormatter(this.imageCdnPrefix);
+  }
 
   async resolve(locator: MediaLocator): Promise<MediaResolveResult> {
     if (locator.url) {
@@ -47,7 +61,15 @@ export class MediaInfoService {
     return {
       bbcode: this.bbcodeFormatter.format(info),
       markdown: this.markdownFormatter.format(info),
-      json: JSON.stringify(info, null, 2),
+      json: JSON.stringify(this.toPublicInfo(info), null, 2),
+    };
+  }
+
+  toPublicInfo(info: MediaInfo): PublicMediaInfo {
+    return {
+      ...info,
+      poster_proxy:
+        info.poster && this.imageCdnPrefix ? getPosterUrl(info.poster, this.imageCdnPrefix) : null,
     };
   }
 

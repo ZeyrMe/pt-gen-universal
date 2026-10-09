@@ -23,6 +23,8 @@ export interface AppConfig {
   doubanWarmupTimeoutMs?: number;
   doubanIncludeAwards?: boolean;
   doubanIncludeImdb?: boolean;
+  doubanIncludeRexxar?: boolean;
+  imageCdnPrefix?: string;
   indienovaCookie?: string;
 
   // IMDB 配置

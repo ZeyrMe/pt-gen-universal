@@ -182,6 +182,8 @@ pnpm dlx wrangler secret put INDIENOVA_COOKIE
 | `APIKEY` | API 访问密钥 |
 | `TMDB_API_KEY` | TMDB API 密钥 |
 | `DOUBAN_COOKIE` | 豆瓣 Cookie |
+| `DOUBAN_INCLUDE_REXXAR` | 是否调用豆瓣移动端内部 Rexxar API 补充移动页面缺失资料，默认启用；桌面页面不调用 |
+| `IMAGE_CDN_PREFIX` | 海报代理入口；BBCode/Markdown 使用代理地址，JSON 保留 `poster` 并在 `poster_proxy` 返回代理地址；直接拼接且不编码，示例：`https://dbimgs.audiences.me/?` |
 | `INDIENOVA_COOKIE` | Indienova Cookie |
 | `DISABLE_SEARCH` | 是否禁用搜索 |
 | `CACHE_TTL` | 缓存 TTL，单位秒 |
@@ -192,6 +194,10 @@ pnpm dlx wrangler secret put INDIENOVA_COOKIE
 | `REQUEST_TIMEOUT_MS` | 通用抓取超时 |
 | `PROXY_URL` | 可选抓取中转 |
 | `PROXY_ALLOW_SENSITIVE_HEADERS` | 是否允许转发敏感请求头到中转 |
+
+`IMAGE_CDN_PREFIX` 不是任意 CDN 域名，而是必须支持直接拼接目标图片 URL 的代理入口。例如原海报为 `https://img1.doubanio.com/poster.webp`，配置为 `https://dbimgs.audiences.me/?` 时，输出代理地址为 `https://dbimgs.audiences.me/?https://img1.doubanio.com/poster.webp`。未配置时 `poster_proxy` 为 `null`。使用第三方代理前应确认其稳定性和隐私策略。
+
+Rexxar 是豆瓣移动端使用的内部接口，不是承诺稳定的开放 API。本项目仅在桌面页面抓取失败并回退到移动页面时调用它，并将其作为补充数据源：HTML 中已有的数据会保留；演职员仅在 HTML 缺失时补充；语言、地区、类型、日期和别名等集合字段会合并去重。Rexxar 请求使用独立的 3 秒超时，并通过豆瓣从电影端点到剧集端点的重定向在一次请求内兼容两种类型；失败时直接保留 HTML 结果。可通过 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
 
 ### 平台存储变量
 
@@ -261,6 +267,20 @@ curl -X POST "http://localhost:3000/api/v2/info" \
 - Query：`?apikey=xxx`
 - Header：`X-API-Key: xxx`
 - Header：`Authorization: Bearer xxx`
+
+## 更新日志
+
+### 2026-10-09
+
+- 海报前缀通过统一运行时配置传入，支持无 Node 全局对象的 Edge 环境；JSON 保留原始 `poster`，并新增可空的 `poster_proxy`。
+- Rexxar 开关接入环境变量，桌面页面不再请求补充接口；移动页面先解析 HTML，再合并 Rexxar 补充数据，避免覆盖原始上映日期和演职员。
+- 响应缓存按 schema/parser 版本、海报代理配置和 Rexxar 开关隔离，避免部署后混用新旧响应。
+- CI 增加实际 workerd 引擎的 API 请求检查，使用固定抓取响应验证 Edge 兼容、海报输出及 Rexxar 开关；不代表外部接口实时可用。
+
+### 2026-08-28
+
+- **豆瓣演职员信息增强**：真实豆瓣页面（移动版）的演职员区块由 JS 异步渲染，导演/编剧/主演等无法从原始 HTML 获取。移动页面现通过豆瓣 rexxar API（`m.douban.com/rexxar/api/v2/{movie|tv}/{id}`）补充导演、主演、语言、地区、类型、集数等字段；若响应提供 writers，则补充编剧，支持电影与剧集的接口路径；可用性取决于豆瓣接口和部署网络。可用 `DOUBAN_INCLUDE_REXXAR=false` 关闭。
+- **兼容 differential 发种插件**：differential 0.6.2 的 pter 插件期望 pt-gen 的 `director`/`writer`/`cast` 为 `[{name}]` 对象数组。V1 API（`/api/v1/info`，differential 通过 `/api/info` 调用）输出层现将其转换为对象数组，内部数据结构与 BBCode/Markdown 输出不受影响。
 
 ## 支持资源站点
 

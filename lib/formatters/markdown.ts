@@ -3,7 +3,11 @@ import { MediaExtras, MediaInfo } from '../types/schema';
 import { normalizeMaybeArray, normalizePeople } from '../utils/string';
 import { ensureArray } from '../utils/array';
 
+import { getPosterUrl } from '../utils/poster';
+
 export class MarkdownFormatter implements Formatter {
+  constructor(private readonly imageCdnPrefix?: string) {}
+
   format(data: MediaInfo): string {
     // If it's a game (determined by site or presence of game_info), use game formatter
     if (['steam', 'indienova', 'gog'].includes(data.site) || data.game_info) {
@@ -13,7 +17,8 @@ export class MarkdownFormatter implements Formatter {
   }
 
   private formatMovie(data: MediaInfo): string {
-    const poster = String(data?.poster || '');
+    // 使用 getPosterUrl 处理海报链接（支持环境变量）
+    const poster = getPosterUrl(data?.poster, this.imageCdnPrefix);
     const trans_title = normalizeMaybeArray(data?.trans_title).trim();
     const this_title = normalizeMaybeArray(data?.this_title).trim();
     const year = String(data?.year || '').trim();
@@ -167,7 +172,8 @@ export class MarkdownFormatter implements Formatter {
   }
 
   private formatGame(data: MediaInfo): string {
-    const poster = String(data?.poster || '');
+    // 使用 getPosterUrl 处理海报链接（支持环境变量）
+    const poster = getPosterUrl(data?.poster, this.imageCdnPrefix);
     const title = data.chinese_title || data.foreign_title;
     const gameInfo = data.game_info || {};
     const extra = (data.extras || data.extra || {}) as MediaExtras;

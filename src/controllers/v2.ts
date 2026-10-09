@@ -35,6 +35,7 @@ export class V2Controller {
 
       const { site: finalSite, info } = await this.mediaInfoService.resolve({ url, site, sid });
       const formatOutput = this.mediaInfoService.renderFormat(info, normalizedFormat);
+      const publicInfo = this.mediaInfoService.toPublicInfo(info);
 
       const response: ApiV2SuccessResponse = {
         versions: {
@@ -48,7 +49,7 @@ export class V2Controller {
           source_url: url,
         },
         data: {
-          ...info,
+          ...publicInfo,
           format: formatOutput,
         },
       };

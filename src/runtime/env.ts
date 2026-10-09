@@ -143,6 +143,8 @@ export function createRuntimeSetup(context: RuntimeContext): NormalizedRuntimeSe
     proxyAllowSensitiveHeaders: parseBooleanEnv(values.PROXY_ALLOW_SENSITIVE_HEADERS) ?? false,
     tmdbApiKey: values.TMDB_API_KEY,
     doubanCookie: values.DOUBAN_COOKIE,
+    doubanIncludeRexxar: parseBooleanEnv(values.DOUBAN_INCLUDE_REXXAR) ?? true,
+    imageCdnPrefix: values.IMAGE_CDN_PREFIX,
     indienovaCookie: values.INDIENOVA_COOKIE,
     doubanUserAgent: values.DOUBAN_USER_AGENT,
     doubanAcceptLanguage: values.DOUBAN_ACCEPT_LANGUAGE,

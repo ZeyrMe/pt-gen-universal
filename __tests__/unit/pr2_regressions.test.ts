@@ -1,0 +1,136 @@
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { createRuntimeSetup } from '../../src/runtime/env';
+import { MediaInfoService } from '../../src/services/media-info';
+import { Orchestrator } from '../../lib/orchestrator';
+import { DoubanNormalizer } from '../../lib/normalizers/douban';
+import { DoubanScraper } from '../../lib/scrapers/douban';
+import * as fetchModule from '../../lib/utils/fetch';
+
+const desktop = readFileSync(new URL('../fixtures/douban.html', import.meta.url), 'utf8');
+const mobile = readFileSync(new URL('../fixtures/douban_m.html', import.meta.url), 'utf8');
+const normalizer = new DoubanNormalizer();
+const normalize = (html: string, extra = {}) =>
+  normalizer.normalize({ site: 'douban', sid: '1292052', success: true, html, ...extra }, {});
+afterEach(() => vi.restoreAllMocks());
+
+function mockSubject(
+  html: string,
+  rexxar: unknown = { title: 'test', directors: [{ name: '导演' }] }
+) {
+  return vi.spyOn(fetchModule, 'fetchWithTimeout').mockImplementation(async (url) => {
+    const u = String(url);
+    const body = u.includes('/rexxar/') ? JSON.stringify(rexxar) : html;
+    return { response: new Response(body, { status: 200 }), proxyUsed: false, finalUrl: u };
+  });
+}
+const config = { doubanCookie: 'bid=test', doubanIncludeAwards: false, doubanIncludeImdb: false };
+
+describe('PR #2 runtime and fallback regressions', () => {
+  it('passes deployed env configuration into formatters and exposes both poster URLs', () => {
+    const setup = createRuntimeSetup({
+      platform: 'cloudflare',
+      env: { IMAGE_CDN_PREFIX: 'https://cdn.example/?', DOUBAN_INCLUDE_REXXAR: 'false' },
+    });
+    expect(setup.appConfig.doubanIncludeRexxar).toBe(false);
+    const info = normalize(desktop);
+    const formats = new MediaInfoService({} as Orchestrator, setup.appConfig).renderFormats(info);
+    expect(formats.bbcode).toContain(`[img]https://cdn.example/?${info.poster}[/img]`);
+    expect(formats.markdown).toContain(`![海报](https://cdn.example/?${info.poster})`);
+    expect(JSON.parse(formats.json)).toMatchObject({
+      poster: info.poster,
+      poster_proxy: `https://cdn.example/?${info.poster}`,
+    });
+    const defaults = new MediaInfoService({} as Orchestrator).renderFormats(info);
+    expect(defaults.bbcode).toContain(`[img]${info.poster}[/img]`);
+    expect(JSON.parse(defaults.json).poster_proxy).toBeNull();
+  });
+  it('does not request Rexxar for desktop subjects', async () => {
+    const spy = mockSubject(desktop);
+    await new DoubanScraper().fetch('1292052', config);
+    expect(spy.mock.calls.some(([url]) => String(url).includes('/rexxar/'))).toBe(false);
+  });
+  it('honors the deployed off switch on mobile subjects', async () => {
+    const spy = mockSubject(mobile);
+    const setup = createRuntimeSetup({ platform: 'node', env: { DOUBAN_INCLUDE_REXXAR: 'false' } });
+    await new DoubanScraper().fetch('1292052', { ...config, ...setup.appConfig });
+    expect(spy.mock.calls.some(([url]) => String(url).includes('/rexxar/'))).toBe(false);
+  });
+  it('uses one movie endpoint request and lets Douban redirect TV subjects', async () => {
+    const spy = mockSubject(mobile + '<a href="/tv/subject/1292052/">电视剧</a>');
+    const raw = await new DoubanScraper().fetch('1292052', config);
+    const calls = spy.mock.calls.filter(([url]) => String(url).includes('/rexxar/'));
+    expect(calls).toHaveLength(1);
+    expect(String(calls[0][0])).toContain('/rexxar/api/v2/movie/');
+    expect(calls[0][2]).toBe(3000);
+    expect(normalizer.normalize(raw, {}).director).toEqual(['导演']);
+  });
+  it('keeps HTML results without retrying when Rexxar throws', async () => {
+    const spy = mockSubject(mobile);
+    spy.mockImplementation(async (url) => {
+      if (String(url).includes('/rexxar/')) throw new Error('network unavailable');
+      return { response: new Response(mobile), proxyUsed: false, finalUrl: String(url) };
+    });
+    const raw = await new DoubanScraper().fetch('1292052', config);
+    expect(raw.success).toBe(true);
+    expect(raw.rexxar_data).toBeUndefined();
+    expect(spy.mock.calls.filter(([url]) => String(url).includes('/rexxar/'))).toHaveLength(1);
+    expect(normalizer.normalize(raw, {}).chinese_title).toBeTruthy();
+  });
+  it('rejects API error payloads and still returns HTML data', async () => {
+    mockSubject(mobile, { error: 'unavailable' });
+    const raw = await new DoubanScraper().fetch('1292052', config);
+    expect(raw.rexxar_data).toBeUndefined();
+    expect(normalizer.normalize(raw, {}).chinese_title).toBeTruthy();
+  });
+  it('supports optional writers and cover_url without requiring pic', () => {
+    const noPoster = mobile.replace(/<img[^>]*>/g, '');
+    const info = normalize(noPoster, {
+      rexxar_data: { writers: [{ name: '编剧' }], cover_url: 'https://example.com/poster.jpg' },
+    });
+    expect(info.writer).toEqual(['编剧']);
+    expect(info.poster).toBe('https://example.com/poster.jpg');
+  });
+  it('keeps HTML values and merges supplemental Rexxar metadata', () => {
+    const htmlWithCrew =
+      mobile +
+      '<div id="info"><span><span class="pl">导演:</span> <span class="attrs"><a>HTML 导演</a></span></span><br></div>';
+    const info = normalize(htmlWithCrew, {
+      rexxar_data: {
+        directors: [{ name: 'Rexxar 导演' }],
+        languages: ['法语'],
+        countries: ['加拿大'],
+        genres: ['动作'],
+        pubdate: ['2026-08-28(中国大陆)'],
+      },
+    });
+
+    expect(info.director).toEqual(['HTML 导演']);
+    expect(info.language).toEqual(['法语']);
+    expect(info.region).toEqual(['美国', '加拿大']);
+    expect(info.genre).toEqual(['剧情', '犯罪', '动作']);
+    expect(info.playdate).toEqual(['1994-09-10(多伦多电影节)', '2026-08-28(中国大陆)']);
+  });
+  it('extracts poster and rating from HTML when JSON-LD is absent', () => {
+    const html =
+      desktop.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, '') +
+      '<div id="mainpic"><img src="https://example.com/poster.jpg"></div><strong property="v:average">9.7</strong><span property="v:votes">123</span>';
+    const info = normalize(html);
+    expect(info.poster).toBe('https://example.com/poster.jpg');
+    expect(info.ratings?.douban?.formatted).toBe('9.7/10 from 123 users');
+  });
+  it('fills only the missing vote count from Rexxar rating data', () => {
+    const html = mobile.replace(/<meta itemprop="reviewCount"[^>]*>/, '');
+    const info = normalize(html, { rexxar_data: { rating: { value: 8.1, count: 123 } } });
+    expect(info.douban_rating_average).toBe(9.7);
+    expect(info.douban_votes).toBe(123);
+    expect(info.ratings?.douban?.formatted).toBe('9.7/10 from 123 users');
+  });
+  it('fills only the missing average from Rexxar rating data', () => {
+    const html = mobile.replace(/<meta itemprop="ratingValue"[^>]*>/, '');
+    const info = normalize(html, { rexxar_data: { rating: { value: 8.1, count: 123 } } });
+    expect(info.douban_rating_average).toBe(8.1);
+    expect(info.douban_votes).toBe(3249389);
+    expect(info.ratings?.douban?.formatted).toBe('8.1/10 from 3249389 users');
+  });
+});

@@ -65,11 +65,13 @@ describe('API v2 controller contract', () => {
     }),
     renderFormat = (_info: unknown, format: 'json' | 'bbcode' | 'markdown') =>
       format === 'markdown' ? '## 基本信息' : format === 'bbcode' ? '◎译　　名' : undefined,
+    toPublicInfo = (info: any) => ({ ...info, poster_proxy: null }),
   }: {
     config?: Record<string, unknown>;
     search?: (sourceName: string, query: string) => Promise<unknown[]>;
     resolve?: MediaInfoService['resolve'];
     renderFormat?: MediaInfoService['renderFormat'];
+    toPublicInfo?: MediaInfoService['toPublicInfo'];
   }) {
     return new V2Controller(
       {
@@ -78,6 +80,7 @@ describe('API v2 controller contract', () => {
       {
         resolve,
         renderFormat,
+        toPublicInfo,
       } as any,
       config as any
     );
@@ -91,6 +94,7 @@ describe('API v2 controller contract', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.site).toBe('douban');
+    expect(json.data.poster_proxy).toBeNull();
     // Default is json, so no formatted output should be present.
     expect('format' in json.data).toBe(false);
   });

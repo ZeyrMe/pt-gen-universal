@@ -6,7 +6,8 @@ export class CacheManager {
   constructor(
     private readonly storage: Storage,
     private readonly cacheTTL: number,
-    private readonly prefix = 'ptgen:cache:'
+    private readonly variant = 'default',
+    private readonly prefix = 'ptgen:cache:v2:'
   ) {}
 
   isEnabled(): boolean {
@@ -47,7 +48,7 @@ export class CacheManager {
   async makeCacheKey(c: Context): Promise<string> {
     const url = new URL(c.req.url);
     const stableSearch = this.stableSearchString(url);
-    const rawKey = `${c.req.method}:${url.pathname}${stableSearch}`;
+    const rawKey = `${this.variant}:${c.req.method}:${url.pathname}${stableSearch}`;
     const hashed = await this.sha256Hex(rawKey);
     return `${this.prefix}${hashed}`;
   }

@@ -29,7 +29,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "check": "pnpm run check:homepage && pnpm run check:runtime-entries && pnpm exec tsc --noEmit && pnpm run test:run && pnpm run build"
+    "check": "pnpm run check:homepage && pnpm run check:runtime-entries && pnpm run check:worker && pnpm exec tsc --noEmit && pnpm run test:run && pnpm run build",
+    "check:worker": "node scripts/smoke-worker.mjs"
   },
   "engines": {
     "node": ">=20.19.0",

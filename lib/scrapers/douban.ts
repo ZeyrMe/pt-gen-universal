@@ -6,10 +6,12 @@ import { normalizeCookie, mergeCookies } from '../utils/string';
 import { fetchWithTimeout } from '../utils/fetch';
 import { rateLimiter } from '../utils/rate-limiter';
 import { pageParser } from '../utils/html';
+import { safeJsonParse } from '../utils/json';
 import { NONE_EXIST_ERROR } from '../utils/error';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_WARMUP_TIMEOUT_MS = 4_000;
+const DEFAULT_REXXAR_TIMEOUT_MS = 3_000;
 const HAS_GETSETCOOKIE =
   typeof Headers !== 'undefined' && typeof Headers.prototype?.getSetCookie === 'function';
 
@@ -68,6 +70,28 @@ export class DoubanScraper implements Scraper {
       douban_link: doubanLink,
     };
 
+    // The mobile page renders the crew list via JS, so enrich with the rexxar API.
+    // Directors / writers / actors / languages / episodes may be missing from raw HTML.
+    const subject = pageParser(html);
+    const isMobile = subject('.subject-header-wrap, .sub-title').length > 0;
+    if (isMobile && config.doubanIncludeRexxar !== false) {
+      try {
+        const rexxar = await this.fetchRexxarApi(
+          id,
+          config,
+          headers,
+          Math.min(timeoutMs, DEFAULT_REXXAR_TIMEOUT_MS)
+        );
+        proxy_used = proxy_used || rexxar.proxyUsed;
+        data.proxy_used = proxy_used;
+        if (rexxar.data) {
+          data.rexxar_data = rexxar.data;
+        }
+      } catch {
+        // Keep the HTML data when optional enrichment fails.
+      }
+    }
+
     // Awards and IMDb are enriched in Normalizer or here?
     // Usually scraper just gets raw data.
     // In the legacy code, gen_douban does fetching awards/imdb.
@@ -94,7 +118,7 @@ export class DoubanScraper implements Scraper {
     // We can do a quick regex extract of IMDb ID here to support that feature.
 
     // Quick extract IMDb ID
-    const $ = pageParser(html);
+    const $ = subject;
     const imdbAnchor = $('#info span.pl:contains("IMDb")');
     const imdbText = (imdbAnchor?.[0]?.nextSibling as any)?.data; // basic check
     if (imdbText) {
@@ -272,6 +296,51 @@ export class DoubanScraper implements Scraper {
     if (/检测到有异常请求|异常请求/.test(bodyText || '')) return true;
     if (/请开启JavaScript|captcha|验证码/.test(bodyText || '')) return true;
     return false;
+  }
+
+  private async fetchRexxarApi(
+    sid: string,
+    config: AppConfig,
+    headers: Record<string, string>,
+    timeoutMs: number
+  ): Promise<{ data: any | null; proxyUsed: boolean }> {
+    if (config.doubanIncludeRexxar === false) return { data: null, proxyUsed: false };
+
+    // Douban redirects TV subjects from /movie/ to /tv/. Fetch follows redirects by default,
+    // so one request covers both types without doubling the optional enrichment timeout.
+    const url = `https://m.douban.com/rexxar/api/v2/movie/${sid}?ck=&for_mobile=1`;
+    if (!(await rateLimiter.tryAcquire('douban'))) {
+      return { data: null, proxyUsed: false };
+    }
+
+    const apiHeaders = {
+      ...headers,
+      Accept: 'application/json, text/plain, */*',
+      Referer: `https://m.douban.com/movie/subject/${sid}/`,
+    };
+    const { response: resp, proxyUsed } = await fetchWithTimeout(
+      url,
+      { headers: apiHeaders },
+      timeoutMs,
+      config
+    );
+    if (!resp.ok) return { data: null, proxyUsed };
+
+    const raw = await resp.text();
+    if (this.looksLikeSecChallenge(resp, raw)) return { data: null, proxyUsed };
+
+    const json = safeJsonParse(raw);
+    if (
+      json &&
+      typeof json === 'object' &&
+      !Array.isArray(json) &&
+      !json.error &&
+      (json.title || json.directors || json.actors)
+    ) {
+      return { data: json, proxyUsed };
+    }
+
+    return { data: null, proxyUsed };
   }
 
   private async fetchAwards(

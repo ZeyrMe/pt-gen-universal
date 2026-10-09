@@ -103,4 +103,29 @@ describe('cache middleware', () => {
     expect(res2.status).toBe(200);
     expect(await res2.json()).toEqual({ ok: true, hits: 2 });
   });
+
+  it('does not reuse cached responses across runtime configuration variants', async () => {
+    const storage = new TestStorage();
+
+    const createApp = (variant: string, source: string) => {
+      const app = new Hono<{ Variables: { cacheable?: boolean } }>();
+      app.use('/api/*', createCacheMiddleware(storage, 60, variant) as any);
+      app.get('/api/info', (c) => {
+        c.set(CTX_CACHEABLE, true);
+        return c.json({ source });
+      });
+      return app;
+    };
+
+    const withoutProxy = createApp('poster-prefix=', 'origin');
+    const withProxy = createApp('poster-prefix=https://cdn.example/?', 'proxy');
+
+    expect(await (await withoutProxy.request('http://localhost/api/info')).json()).toEqual({
+      source: 'origin',
+    });
+    expect(await (await withProxy.request('http://localhost/api/info')).json()).toEqual({
+      source: 'proxy',
+    });
+    expect(storage.putCount).toBe(2);
+  });
 });
