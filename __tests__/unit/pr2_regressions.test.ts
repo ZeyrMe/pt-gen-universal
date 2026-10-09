@@ -27,7 +27,7 @@ function mockSubject(
 const config = { doubanCookie: 'bid=test', doubanIncludeAwards: false, doubanIncludeImdb: false };
 
 describe('PR #2 runtime and fallback regressions', () => {
-  it('passes deployed env configuration into formatters without changing source JSON', () => {
+  it('passes deployed env configuration into formatters and exposes both poster URLs', () => {
     const setup = createRuntimeSetup({
       platform: 'cloudflare',
       env: { IMAGE_CDN_PREFIX: 'https://cdn.example/?', DOUBAN_INCLUDE_REXXAR: 'false' },
@@ -37,9 +37,13 @@ describe('PR #2 runtime and fallback regressions', () => {
     const formats = new MediaInfoService({} as Orchestrator, setup.appConfig).renderFormats(info);
     expect(formats.bbcode).toContain(`[img]https://cdn.example/?${info.poster}[/img]`);
     expect(formats.markdown).toContain(`![海报](https://cdn.example/?${info.poster})`);
-    expect(JSON.parse(formats.json).poster).toBe(info.poster);
+    expect(JSON.parse(formats.json)).toMatchObject({
+      poster: info.poster,
+      poster_proxy: `https://cdn.example/?${info.poster}`,
+    });
     const defaults = new MediaInfoService({} as Orchestrator).renderFormats(info);
     expect(defaults.bbcode).toContain(`[img]${info.poster}[/img]`);
+    expect(JSON.parse(defaults.json).poster_proxy).toBeNull();
   });
   it('does not request Rexxar for desktop subjects', async () => {
     const spy = mockSubject(desktop);
@@ -101,6 +105,26 @@ describe('PR #2 runtime and fallback regressions', () => {
     });
     expect(info.writer).toEqual(['编剧']);
     expect(info.poster).toBe('https://example.com/poster.jpg');
+  });
+  it('keeps HTML values and merges supplemental Rexxar metadata', () => {
+    const htmlWithCrew =
+      mobile +
+      '<div id="info"><span><span class="pl">导演:</span> <span class="attrs"><a>HTML 导演</a></span></span><br></div>';
+    const info = normalize(htmlWithCrew, {
+      rexxar_data: {
+        directors: [{ name: 'Rexxar 导演' }],
+        languages: ['法语'],
+        countries: ['加拿大'],
+        genres: ['动作'],
+        pubdate: ['2026-08-28(中国大陆)'],
+      },
+    });
+
+    expect(info.director).toEqual(['HTML 导演']);
+    expect(info.language).toEqual(['法语']);
+    expect(info.region).toEqual(['美国', '加拿大']);
+    expect(info.genre).toEqual(['剧情', '犯罪', '动作']);
+    expect(info.playdate).toEqual(['1994-09-10(多伦多电影节)', '2026-08-28(中国大陆)']);
   });
   it('extracts poster and rating from HTML when JSON-LD is absent', () => {
     const html =

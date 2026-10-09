@@ -35,7 +35,11 @@ describe('API v1 controller contract', () => {
       renderFormats: (info: any) => ({
         bbcode: `bbcode:${info.director.join('/')}`,
         markdown: 'markdown',
-        json: JSON.stringify(info),
+        json: JSON.stringify({ ...info, poster_proxy: 'https://cdn.example/?poster' }),
+      }),
+      toPublicInfo: (info: any) => ({
+        ...info,
+        poster_proxy: 'https://cdn.example/?poster',
       }),
       renderFormat: () => undefined,
     } as unknown as MediaInfoService;
@@ -53,6 +57,8 @@ describe('API v1 controller contract', () => {
     expect(body.director).toEqual([{ name: '弗兰克·德拉邦特' }]);
     expect(body.writer).toEqual([{ name: '斯蒂芬·金' }]);
     expect(body.cast).toEqual([{ name: '蒂姆·罗宾斯' }, { name: '摩根·弗里曼' }]);
+    expect(body.poster_proxy).toBe('https://cdn.example/?poster');
+    expect(JSON.parse(body.formats.json).poster_proxy).toBe('https://cdn.example/?poster');
   });
 
   it('keeps the internal director array for BBCode formatting', async () => {

@@ -337,42 +337,52 @@ export class DoubanNormalizer implements Normalizer {
 
   private applyRexxarData(info: MediaInfo, data: any): void {
     const name = (p: any) => String(p?.name || '').trim();
+    const strings = (value: unknown) =>
+      ensureArray(value)
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
+    const merge = (current: string[], supplemental: string[]) =>
+      Array.from(
+        new Set(
+          [...current, ...supplemental].map((value) => String(value || '').trim()).filter(Boolean)
+        )
+      );
 
     const directors = ensureArray(data.directors).map(name).filter(Boolean);
-    if (directors.length) info.director = directors;
+    if (!info.director.length && directors.length) info.director = directors;
 
     const writers = ensureArray(data.writers).map(name).filter(Boolean);
-    if (writers.length) info.writer = writers;
+    if (!info.writer.length && writers.length) info.writer = writers;
 
     const actors = ensureArray(data.actors).map(name).filter(Boolean);
-    if (actors.length) info.cast = actors;
+    if (!info.cast.length && actors.length) info.cast = actors;
 
-    const languages = ensureArray(data.languages).map(String).filter(Boolean);
-    if (languages.length) info.language = languages;
+    const languages = strings(data.languages);
+    if (languages.length) info.language = merge(info.language, languages);
 
-    const countries = ensureArray(data.countries).map(String).filter(Boolean);
-    if (countries.length) info.region = countries;
+    const countries = strings(data.countries);
+    if (countries.length) info.region = merge(info.region, countries);
 
-    const genres = ensureArray(data.genres).map(String).filter(Boolean);
-    if (genres.length) info.genre = genres;
+    const genres = strings(data.genres);
+    if (genres.length) info.genre = merge(info.genre, genres);
 
-    const durations = ensureArray(data.durations).map(String).filter(Boolean);
+    const durations = strings(data.durations);
     if (durations.length && !info.duration) info.duration = durations[0];
 
-    const pubdates = ensureArray(data.pubdate).map(String).filter(Boolean);
-    if (pubdates.length) info.playdate = sortPlaydates(pubdates);
+    const pubdates = strings(data.pubdate);
+    if (pubdates.length) info.playdate = sortPlaydates(merge(info.playdate, pubdates));
 
     if (!info.episodes && data.episodes_count) {
       info.episodes = String(data.episodes_count);
     }
 
-    const aka = ensureArray(data.aka).map(String).filter(Boolean);
-    if (aka.length && !info.aka.length) {
-      info.aka = aka;
+    const aka = strings(data.aka);
+    if (aka.length) {
+      info.aka = merge(info.aka, aka);
       this.setTitles(info, {
         chinese_title: info.chinese_title,
         foreign_title: info.foreign_title,
-        aka: aka.join('/'),
+        aka: info.aka.join('/'),
       });
     }
 
@@ -494,11 +504,6 @@ export class DoubanNormalizer implements Normalizer {
 
     info.playdate = sortPlaydates(info.playdate);
 
-    // Enrich with the rexxar API data (crew is rendered via JS on mobile pages).
-    if (rexxarData && typeof rexxarData === 'object') {
-      this.applyRexxarData(info, rexxarData);
-    }
-
     // Some mobile pages still carry a desktop-style #info block with director/cast/episodes.
     if ($('#info').length > 0) {
       const infoRows = this.parseInfoRows($);
@@ -512,6 +517,11 @@ export class DoubanNormalizer implements Normalizer {
         const singleEp = infoRows['单集片长']?.links[0] || infoRows['单集片长']?.text || '';
         info.duration = singleEp || infoRows['片长']?.links[0] || infoRows['片长']?.text || '';
       }
+    }
+
+    // Rexxar is supplemental: retain values already available in the HTML.
+    if (rexxarData && typeof rexxarData === 'object') {
+      this.applyRexxarData(info, rexxarData);
     }
 
     const introP = $('section.subject-intro .bd p').first();

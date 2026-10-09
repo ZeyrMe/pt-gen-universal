@@ -11,6 +11,7 @@ import { CacheManager } from './cache/cache-manager';
 import { createRateLimitMiddleware } from './middleware/rate-limit';
 import { MediaInfoService } from './services/media-info';
 import type { Storage } from './storage/storage';
+import { PARSER_VERSION, SCHEMA_VERSION } from '../lib/constants/version';
 
 export type { Storage } from './storage/storage';
 
@@ -111,8 +112,8 @@ function createAuthMiddleware(config: AppConfig) {
   };
 }
 
-export function createCacheMiddleware(storage: Storage, cacheTTL: number) {
-  const cache = new CacheManager(storage, cacheTTL);
+export function createCacheMiddleware(storage: Storage, cacheTTL: number, variant = 'default') {
+  const cache = new CacheManager(storage, cacheTTL, variant);
   return async (c: Context, next: () => Promise<void>) => {
     if (!cache.isEnabled() || !cache.isRequestEligible(c)) return next();
 
@@ -245,6 +246,12 @@ export function createApp(storage: Storage, config: AppConfig = {}) {
   // HTML must be provided by the runtime adapter (Node/Bun/CF).
   const htmlPage = config.htmlPage || '';
   const cacheTTL = normalizeCacheTTL(config.cacheTTL); // 默认 2 天
+  const cacheVariant = JSON.stringify({
+    schema: SCHEMA_VERSION,
+    parser: PARSER_VERSION,
+    imageCdnPrefix: config.imageCdnPrefix?.trim() || '',
+    doubanIncludeRexxar: config.doubanIncludeRexxar !== false,
+  });
 
   warnProxyConfig(config);
 
@@ -259,7 +266,7 @@ export function createApp(storage: Storage, config: AppConfig = {}) {
   }
 
   app.use('/api/*', createAuthMiddleware(config));
-  app.use('/api/*', createCacheMiddleware(storage, cacheTTL));
+  app.use('/api/*', createCacheMiddleware(storage, cacheTTL, cacheVariant));
   setupRoutes(app, v1, v2, htmlPage);
 
   return app;

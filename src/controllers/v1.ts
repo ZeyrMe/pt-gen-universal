@@ -75,11 +75,12 @@ export class V1Controller {
     try {
       const { sid, info } = await this.mediaInfoService.resolve(locator);
       const formats = this.mediaInfoService.renderFormats(info);
+      const publicInfo = this.mediaInfoService.toPublicInfo(info);
 
       const data = {
         sid: sid,
         success: true,
-        ...info,
+        ...publicInfo,
         director: this.toNameObjects(info.director),
         writer: this.toNameObjects(info.writer),
         cast: this.toNameObjects(info.cast),

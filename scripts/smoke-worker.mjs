@@ -63,7 +63,10 @@ for (const enabled of [false, true]) {
       assert.equal(data.success, true);
       assert.ok(data.format.includes('[img]https://cdn.example/?'));
       assert.ok(data.formats.markdown.includes('![海报](https://cdn.example/?'));
-      assert.equal(JSON.parse(data.formats.json).poster, data.poster);
+      assert.equal(data.poster_proxy, 'https://cdn.example/?' + data.poster);
+      const formatJson = JSON.parse(data.formats.json);
+      assert.equal(formatJson.poster, data.poster);
+      assert.equal(formatJson.poster_proxy, data.poster_proxy);
       if (sid === '1292052') assert.ok(data.director[0].name.includes('Frank Darabont'));
       if (sid === '100' && enabled) assert.equal(data.director[0].name, 'API director');
     }
@@ -73,6 +76,7 @@ for (const enabled of [false, true]) {
     assert.equal(v2Json.status, 200);
     const jsonBody = await v2Json.json();
     assert.ok(!jsonBody.data.poster.startsWith('https://cdn.example/'));
+    assert.equal(jsonBody.data.poster_proxy, 'https://cdn.example/?' + jsonBody.data.poster);
     const v2BBCode = await mf.dispatchFetch(
       'http://worker/api/v2/info?site=douban&sid=1292052&format=bbcode'
     );

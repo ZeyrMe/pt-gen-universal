@@ -81,6 +81,18 @@ describe('MediaInfoService', () => {
     expect(formats.bbcode).toContain('◎年　　代　1994');
     expect(formats.markdown).toContain('## 基本信息');
     expect(formats.json).toContain('"site": "douban"');
+    expect(JSON.parse(formats.json).poster_proxy).toBeNull();
+  });
+
+  it('在公共 JSON 中同时保留原海报和代理海报', () => {
+    const service = new MediaInfoService({} as any, {
+      imageCdnPrefix: ' https://cdn.example/? ',
+    });
+
+    const publicInfo = service.toPublicInfo(fakeInfo);
+    expect(publicInfo.poster).toBe(fakeInfo.poster);
+    expect(publicInfo.poster_proxy).toBe(`https://cdn.example/?${fakeInfo.poster}`);
+    expect(JSON.parse(service.renderFormats(fakeInfo).json)).toMatchObject(publicInfo);
   });
 
   it('json 格式不重复附加文本输出', () => {
