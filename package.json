@@ -43,11 +43,11 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hono/node-server": "^1.13.7",
-    "@netlify/blobs": "^10.7.4",
+    "@hono/node-server": "^1.19.17",
+    "@netlify/blobs": "^10.7.13",
     "@upstash/redis": "^1.37.0",
     "cheerio": "^1.1.2",
-    "hono": "^4.11.7",
+    "hono": "^4.13.13",
     "html2bbcode": "^1.2.6",
     "redis": "^5.11.0"
   },
@@ -62,7 +62,15 @@
     "wrangler": "^4.59.1"
   },
   "overrides": {
+    "@fastify/busboy": "^3.2.2",
     "entities": "^7.0.0",
-    "undici": "^7.18.2"
+    "undici": "^7.30.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@fastify/busboy": "^3.2.2",
+      "entities": "^7.0.0",
+      "undici": "^7.30.0"
+    }
   }
 }
