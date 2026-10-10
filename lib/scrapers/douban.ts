@@ -135,7 +135,7 @@ export class DoubanScraper implements Scraper {
     const cookieHeader = mergeCookies(cfgCookie, bid);
     const headers = cookieHeader ? { ...baseHeaders, Cookie: cookieHeader } : baseHeaders;
 
-    await rateLimiter.acquire('douban', 3000);
+    await rateLimiter.acquireRequired('douban', 3000);
 
     const result = await fetchWithTimeout(
       `https://movie.douban.com/j/subject_suggest?q=${encodeURIComponent(query)}`,
@@ -193,7 +193,9 @@ export class DoubanScraper implements Scraper {
     baseHeaders: Record<string, string>
   ): Promise<{ cookie: string; proxyUsed: boolean }> {
     try {
-      await rateLimiter.acquire('douban', 2000);
+      if (!(await rateLimiter.tryAcquireOptional('douban'))) {
+        return { cookie: '', proxyUsed: false };
+      }
       const timeoutMs =
         config.doubanWarmupTimeoutMs ||
         Math.min(
@@ -247,8 +249,8 @@ export class DoubanScraper implements Scraper {
     let proxyUsed = false;
 
     for (const url of candidateUrls) {
+      await rateLimiter.acquireRequired('douban', 3000);
       try {
-        await rateLimiter.acquire('douban', 3000);
         const result = await fetchWithTimeout(url, { headers }, timeoutMs, config);
         proxyUsed = proxyUsed || result.proxyUsed;
         const resp = result.response;
@@ -298,7 +300,7 @@ export class DoubanScraper implements Scraper {
     // Douban redirects TV subjects from /movie/ to /tv/. Fetch follows redirects by default,
     // so one request covers both types without doubling the optional enrichment timeout.
     const url = `https://m.douban.com/rexxar/api/v2/movie/${sid}?ck=&for_mobile=1`;
-    if (!(await rateLimiter.tryAcquire('douban'))) {
+    if (!(await rateLimiter.tryAcquireOptional('douban'))) {
       return { data: null, proxyUsed: false };
     }
 
@@ -340,7 +342,9 @@ export class DoubanScraper implements Scraper {
   ): Promise<{ html: string | null; proxyUsed: boolean }> {
     if (config.doubanIncludeAwards === false) return { html: null, proxyUsed: false };
 
-    await rateLimiter.acquire('douban', 2000);
+    if (!(await rateLimiter.tryAcquireOptional('douban'))) {
+      return { html: null, proxyUsed: false };
+    }
     const { response: resp, proxyUsed } = await fetchWithTimeout(
       `https://movie.douban.com/subject/${sid}/awards`,
       { headers },

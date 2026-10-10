@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RateLimiter } from '../lib/rate-limiter';
+import { AppError, ErrorCode } from '../lib/errors';
 
 describe('RateLimiter 频率限制器', () => {
   let limiter: RateLimiter;
@@ -33,6 +34,25 @@ describe('RateLimiter 频率限制器', () => {
       // site2 应该还有令牌
       const result = await limiter.tryAcquire('site2');
       expect(result).toBe(true);
+    });
+  });
+
+  describe('明确的调用语义', () => {
+    it('可选请求在没有令牌时返回 false', async () => {
+      const emptyLimiter = new RateLimiter({ rate: 0, capacity: 1 });
+      await emptyLimiter.tryAcquire('test');
+
+      await expect(emptyLimiter.tryAcquireOptional('test')).resolves.toBe(false);
+    });
+
+    it('核心请求等待超时后抛出 UPSTREAM_THROTTLED', async () => {
+      const emptyLimiter = new RateLimiter({ rate: 0, capacity: 1 });
+      await emptyLimiter.tryAcquire('douban');
+
+      await expect(emptyLimiter.acquireRequired('douban', 0)).rejects.toMatchObject({
+        code: ErrorCode.UPSTREAM_THROTTLED,
+        httpStatus: 503,
+      } satisfies Partial<AppError>);
     });
   });
 

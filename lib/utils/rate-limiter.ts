@@ -72,6 +72,10 @@ export class RateLimiter {
     return false;
   }
 
+  async tryAcquireOptional(site: string): Promise<boolean> {
+    return this.tryAcquire(site);
+  }
+
   /**
    * 等待并获取令牌（阻塞式）
    * @param site - 站点名称
@@ -93,6 +97,16 @@ export class RateLimiter {
     return false;
   }
 
+  async acquireRequired(site: string, maxWaitMs: number = 5000): Promise<void> {
+    if (await this.acquire(site, maxWaitMs)) return;
+
+    throw new AppError(
+      ErrorCode.UPSTREAM_THROTTLED,
+      `Local upstream throttle limit reached for ${site}`,
+      { retry_after_ms: Math.max(0, maxWaitMs) }
+    );
+  }
+
   /**
    * 辅助函数：睡眠指定毫秒数
    */
@@ -112,3 +126,4 @@ export class RateLimiter {
 
 // 创建全局单例
 export const rateLimiter = new RateLimiter();
+import { AppError, ErrorCode } from '../errors';
