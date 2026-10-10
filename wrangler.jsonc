@@ -1,3 +1,4 @@
+// prettier-ignore
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "pt-gen-universal",
@@ -5,12 +6,12 @@
   "compatibility_date": "2025-05-04",
   "kv_namespaces": [
     {
-      "binding": "PT_GEN_STORE",
-    },
+      "binding": "PT_GEN_STORE"
+    }
   ],
   "observability": {
     "logs": {
-      "enabled": true,
-    },
-  },
+      "enabled": true
+    }
+  }
 }
