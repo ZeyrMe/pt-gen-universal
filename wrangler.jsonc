@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pt-gen-universal",
+  "main": "src/adapters/cloudflare.ts",
+  "compatibility_date": "2025-05-04",
+  "kv_namespaces": [
+    {
+      "binding": "PT_GEN_STORE",
+    },
+  ],
+  "observability": {
+    "logs": {
+      "enabled": true,
+    },
+  },
+}

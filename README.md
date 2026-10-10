@@ -50,7 +50,7 @@
 - Hono 核心、runtime env 归一化、平台薄适配层与各平台部署配置文件
 - Cloudflare KV、Vercel Redis、Netlify Blobs、EdgeOne KV、Node Redis 等缓存适配器
 - GitHub 仓库已开启 `Template repository`
-- `GET /`、legacy `/?url=`、认证入口、缓存异常降级等本地测试与 `wrangler build` 验证
+- `GET /`、legacy `/?url=`、认证入口、缓存异常降级等本地测试与 Wrangler 构建验证
 
 ### 仓库外待执行
 
@@ -112,9 +112,14 @@ pnpm run dev:cf
 ### Cloudflare Workers
 
 - 入口：`src/adapters/cloudflare.ts`
+- 配置：`wrangler.jsonc`；默认部署和 Cloudflare 一键部署使用顶层配置
 - 缓存：默认使用 `PT_GEN_STORE` KV 绑定
-- 构建：`pnpm run build`
+- 构建验证：`pnpm run build`（只构建，不部署）
 - 部署：`pnpm run deploy`
+
+`wrangler.jsonc` 中只声明 `PT_GEN_STORE` 绑定而不填写 KV ID 时，Wrangler 会在首次部署时自动创建或关联 KV 资源；如果要使用已经存在的 KV，需要把真实 ID 填回配置。敏感变量和可变运行时变量应通过 Cloudflare Secrets/Variables 设置，不要写入仓库。
+
+Wrangler 的命名环境（例如 `env.production`）不会自动继承顶层的 `vars`、KV 等绑定，且只有显式使用 `--env production` 才会生效。因此本项目目前只保留顶层配置，以兼容默认部署和一键部署；将来增加 staging/production 时，需要在每个命名环境中显式声明所需绑定。
 
 Secrets 建议通过 Wrangler 注入：
 
