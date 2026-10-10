@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["html2bbcode"]
+  },
+  "include": [
+    "lib",
+    "src/app.ts",
+    "src/index.ts",
+    "src/registry.ts",
+    "src/adapters/cloudflare.ts",
+    "src/cache",
+    "src/controllers",
+    "src/middleware",
+    "src/runtime/cloudflare.ts",
+    "src/runtime/edgeone.ts",
+    "src/runtime/env.ts",
+    "src/runtime/netlify.ts",
+    "src/runtime/page.ts",
+    "src/runtime/page.static.ts",
+    "src/runtime/runtime-factory.ts",
+    "src/runtime/vercel.ts",
+    "src/services",
+    "src/sites",
+    "src/storage/cloudflare.ts",
+    "src/storage/edgeone.ts",
+    "src/storage/memory.ts",
+    "src/storage/netlify-blobs.ts",
+    "src/storage/storage.ts",
+    "src/storage/vercel-redis.ts",
+    "src/utils",
+    "api",
+    "edge-functions",
+    "netlify/edge-functions"
+  ]
+}

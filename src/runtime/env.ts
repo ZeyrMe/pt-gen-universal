@@ -25,6 +25,16 @@ export interface NormalizedRuntimeSetup {
   values: Record<string, string | undefined>;
 }
 
+type ProcessEnvGlobal = typeof globalThis & {
+  process?: {
+    env?: Record<string, unknown>;
+  };
+};
+
+export function readGlobalProcessEnv(): Record<string, unknown> {
+  return (globalThis as ProcessEnvGlobal).process?.env || {};
+}
+
 export function normalizeEnvValues(
   env: Record<string, unknown>
 ): Record<string, string | undefined> {

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["html2bbcode", "node"]
+  },
+  "include": [
+    "src/adapters/node.ts",
+    "src/adapters/bun.ts",
+    "src/runtime/node.ts",
+    "src/storage/redis.ts"
+  ]
+}

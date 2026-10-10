@@ -1,5 +1,6 @@
 import { handle } from 'hono/netlify';
 import { createNetlifyRuntime } from '../../src/runtime/netlify';
+import { readGlobalProcessEnv } from '../../src/runtime/env';
 
 let cachedHandlerPromise: Promise<
   (req: Request, context: any) => Response | Promise<Response>
@@ -79,7 +80,7 @@ export function resolveNetlifyEnv(globals: NetlifyEdgeGlobals = globalThis as Ne
     return edgeEnv;
   }
 
-  return typeof process !== 'undefined' ? process.env : {};
+  return readGlobalProcessEnv();
 }
 
 async function getHandler() {

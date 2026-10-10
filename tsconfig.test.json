@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["html2bbcode", "node"]
   },
-  "include": ["src", "lib", "api", "edge-functions", "netlify/edge-functions", "__tests__"]
+  "include": ["__tests__", "vitest.config.ts"]
 }
