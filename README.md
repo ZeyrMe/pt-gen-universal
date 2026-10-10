@@ -2,7 +2,7 @@
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FYunFeng86%2Fpt-gen-universal.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FYunFeng86%2Fpt-gen-universal?ref=badge_shield&issueType=license)
 
-一个面向 PT 和自动化工具的媒体信息 API：从豆瓣、IMDb、TMDB、Bangumi、Steam 和 GOG 获取资料，并输出 JSON、BBCode 或 Markdown。
+一个面向 PT 和自动化工具的媒体信息 API：从豆瓣、IMDb、TMDB、Bangumi、Steam 和 GOG 获取资料，并输出为 JSON、BBCode、Markdown 三种格式。
 
 ## 功能
 
@@ -40,7 +40,7 @@ Cloudflare Workers、Vercel 和 EdgeOne 是推荐的部署目标。三者都提�
 | Vercel             | Edge   | Upstash Redis |
 | EdgeOne            | Edge   | Pages KV      |
 
-项目也提供 Netlify Edge、Node.js 和 Bun 入口，适合已有对应运行环境的部署场景。
+项目同时也提供了 Netlify Edge、Node.js 和 Bun 的支持，可自行进行配置和部署。
 
 ## 快速开始
 
@@ -65,6 +65,8 @@ pnpm run dev
 ```bash
 cp .env.example .env
 ```
+
+并按照所需需求更改`.env`。
 
 ## API
 
