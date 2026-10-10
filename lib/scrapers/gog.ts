@@ -67,21 +67,25 @@ export class GogScraper implements Scraper {
 
     if (slug) {
       const pageUrl = `https://www.gog.com/en/game/${slug}`;
-      const pageResult = await fetchWithTimeout(
-        pageUrl,
-        {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      try {
+        const pageResult = await fetchWithTimeout(
+          pageUrl,
+          {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            },
           },
-        },
-        timeoutMs,
-        config
-      );
-      const pageResp = pageResult.response;
-      proxy_used = proxy_used || pageResult.proxyUsed;
+          timeoutMs,
+          config
+        );
+        const pageResp = pageResult.response;
+        proxy_used = proxy_used || pageResult.proxyUsed;
 
-      if (pageResp.ok) {
-        storeHtml = await pageResp.text();
+        if (pageResp.ok) {
+          storeHtml = await pageResp.text();
+        }
+      } catch {
+        // The product API is sufficient for a core result; the store page is optional enrichment.
       }
     }
 

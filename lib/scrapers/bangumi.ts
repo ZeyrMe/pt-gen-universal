@@ -14,11 +14,11 @@ export class BangumiScraper implements Scraper {
 
     const [mainResult, charResult] = await Promise.all([
       fetchWithTimeout(bangumiLink, {}, timeoutMs, config),
-      fetchWithTimeout(`${bangumiLink}/characters`, {}, timeoutMs, config),
+      fetchWithTimeout(`${bangumiLink}/characters`, {}, timeoutMs, config).catch(() => null),
     ]);
-    const proxy_used = mainResult.proxyUsed || charResult.proxyUsed;
+    const proxy_used = mainResult.proxyUsed || charResult?.proxyUsed === true;
     const mainResp = mainResult.response;
-    const charResp = charResult.response;
+    const charResp = charResult?.response;
 
     if (!mainResp.ok) {
       if (mainResp.status === 404) {
@@ -33,7 +33,7 @@ export class BangumiScraper implements Scraper {
     }
 
     let charHtml = '';
-    if (charResp.ok) {
+    if (charResp?.ok) {
       charHtml = await charResp.text();
     }
 

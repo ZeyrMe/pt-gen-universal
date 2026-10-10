@@ -31,11 +31,11 @@ export class ImdbScraper implements Scraper {
     // Fetch Main Page and Release Info Page concurrently
     const [mainResult, releaseResult] = await Promise.all([
       fetchWithTimeout(imdbUrl, { headers }, timeoutMs, config),
-      fetchWithTimeout(`${imdbUrl}releaseinfo`, { headers }, timeoutMs, config),
+      fetchWithTimeout(`${imdbUrl}releaseinfo`, { headers }, timeoutMs, config).catch(() => null),
     ]);
-    const proxy_used = mainResult.proxyUsed || releaseResult.proxyUsed;
+    const proxy_used = mainResult.proxyUsed || releaseResult?.proxyUsed === true;
     const mainResp = mainResult.response;
-    const releaseResp = releaseResult.response;
+    const releaseResp = releaseResult?.response;
 
     if (!mainResp.ok) {
       if (mainResp.status === 404) {
@@ -96,7 +96,7 @@ export class ImdbScraper implements Scraper {
     const releaseDate: { country: string; date: string }[] = [];
     const aka: { country: string; title: string }[] = [];
 
-    if (releaseResp.ok) {
+    if (releaseResp?.ok) {
       const releaseHtml = await releaseResp.text();
       const $release = cheerio.load(releaseHtml);
 

@@ -20,11 +20,16 @@ export class SteamScraper implements Scraper {
 
     const [pageResult, steamCnResult] = await Promise.all([
       fetchWithTimeout(steamUrl, { headers, redirect: 'manual' }, timeoutMs, config),
-      fetchWithTimeout(`https://steamdb.keylol.com/app/${id}/data.js?v=38`, {}, timeoutMs, config),
+      fetchWithTimeout(
+        `https://steamdb.keylol.com/app/${id}/data.js?v=38`,
+        {},
+        timeoutMs,
+        config
+      ).catch(() => null),
     ]);
-    const proxy_used = pageResult.proxyUsed || steamCnResult.proxyUsed;
+    const proxy_used = pageResult.proxyUsed || steamCnResult?.proxyUsed === true;
     const pageResp = pageResult.response;
-    const steamCnResp = steamCnResult.response;
+    const steamCnResp = steamCnResult?.response;
 
     if (pageResp.status === 302) {
       return {
@@ -57,7 +62,7 @@ export class SteamScraper implements Scraper {
     const mainHtml = await pageResp.text();
 
     let steamCnData = {};
-    if (steamCnResp.ok) {
+    if (steamCnResp?.ok) {
       const text = await steamCnResp.text();
       // JSONP parser logic: match(/[^(]+\((.+)\)/)[1]
       try {
