@@ -9,7 +9,8 @@ const runtime = await createNodeRuntime('bun', process.env);
 // Bun 服务器配置
 export default {
   fetch: runtime.app.fetch,
+  hostname: runtime.hostname,
   port: runtime.port,
 };
 
-console.log(`🚀 PT-Gen server running on http://localhost:${runtime.port}`);
+console.log(`PT-Gen server running on http://${runtime.hostname}:${runtime.port}`);

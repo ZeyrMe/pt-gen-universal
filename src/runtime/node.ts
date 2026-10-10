@@ -8,6 +8,7 @@ import { createRuntimeApp } from './runtime-factory';
 
 export interface NodeRuntimeResult {
   app: Awaited<ReturnType<typeof createRuntimeApp>>['app'];
+  hostname: string;
   port: number;
 }
 
@@ -51,6 +52,7 @@ export async function createNodeRuntime(
 
   return {
     app,
+    hostname: setup.values.HOST || '127.0.0.1',
     port: setup.port,
   };
 }

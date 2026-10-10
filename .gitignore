@@ -6,6 +6,7 @@ pkg/
 wasm-pack.log
 worker/
 dist/
+coverage/
 node_modules/
 .cargo-ok
 .idea

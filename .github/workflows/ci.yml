@@ -20,3 +20,4 @@ jobs:
       - run: corepack prepare pnpm@9.15.9 --activate
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
+      - run: docker build --tag pt-gen-universal:ci .

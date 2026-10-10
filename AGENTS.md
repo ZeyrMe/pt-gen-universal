@@ -15,7 +15,7 @@ BBCode, and Markdown across Cloudflare, Vercel, Netlify, EdgeOne, Node.js, and B
 ## Stack
 
 - TypeScript, Hono, Vitest, Wrangler/workerd, Cheerio, and pnpm 9.
-- Node.js 20.19.0 or newer is required.
+- Node.js 24.x is required for the Node.js server path.
 
 ## Structure
 

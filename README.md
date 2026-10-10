@@ -68,6 +68,39 @@ cp .env.example .env
 
 并按照所需需求更改`.env`。
 
+### Node.js 生产运行
+
+Node.js 服务使用构建后的 `dist/server.mjs`，生产环境不依赖 `tsx`：
+
+```bash
+pnpm run build:node
+pnpm run start:server
+```
+
+本地 Node/Bun 默认监听 `127.0.0.1:3000`。如果需要让容器或反向代理访问，请设置：
+
+```bash
+HOST=0.0.0.0
+PORT=3000
+```
+
+### Docker
+
+Docker 使用 Node.js 24 `bookworm-slim` 镜像，通过多阶段构建生成生产镜像：
+
+```bash
+docker build -t pt-gen-universal .
+docker run --env-file .env -p 3000:3000 pt-gen-universal
+```
+
+容器默认使用 `0.0.0.0:3000`，并通过 `/health` 进行健康检查。需要 Redis 时，可以使用仓库中的 Compose 配置：
+
+```bash
+docker compose up --build
+```
+
+Redis 作为独立服务运行；不配置 Redis 时，应用仍会回退到内存缓存。不要把 `.env` 或其他密钥复制进镜像。
+
 ## API
 
 ### 获取详情
@@ -101,18 +134,20 @@ curl -X POST "http://localhost:3000/api/v2/info" \
 
 ## 配置
 
-| 变量                       | 用途                                    |
-| -------------------------- | --------------------------------------- |
-| `APIKEY`                   | API 访问密钥                            |
-| `TMDB_API_KEY`             | TMDB 搜索和详情                         |
-| `DOUBAN_COOKIE`            | 豆瓣抓取辅助                            |
-| `INDIENOVA_COOKIE`         | Indienova 抓取辅助                      |
-| `IMAGE_CDN_PREFIX`         | 海报代理地址                            |
-| `CACHE_TTL`                | 缓存时间，单位为秒                      |
-| `PT_GEN_STORE`             | Cloudflare / EdgeOne KV 绑定            |
-| `UPSTASH_REDIS_REST_URL`   | Vercel Redis 地址                       |
-| `UPSTASH_REDIS_REST_TOKEN` | Vercel Redis Token                      |
-| `REDIS_URL`                | Node.js / Railway / Zeabur Redis 连接串 |
+| 变量                       | 用途                                     |
+| -------------------------- | ---------------------------------------- |
+| `APIKEY`                   | API 访问密钥                             |
+| `TMDB_API_KEY`             | TMDB 搜索和详情                          |
+| `DOUBAN_COOKIE`            | 豆瓣抓取辅助                             |
+| `INDIENOVA_COOKIE`         | Indienova 抓取辅助                       |
+| `IMAGE_CDN_PREFIX`         | 海报代理地址                             |
+| `CACHE_TTL`                | 缓存时间，单位为秒                       |
+| `PT_GEN_STORE`             | Cloudflare / EdgeOne KV 绑定             |
+| `UPSTASH_REDIS_REST_URL`   | Vercel Redis 地址                        |
+| `UPSTASH_REDIS_REST_TOKEN` | Vercel Redis Token                       |
+| `REDIS_URL`                | Node.js / Railway / Zeabur Redis 连接串  |
+| `HOST`                     | Node.js / Bun 监听地址，默认 `127.0.0.1` |
+| `PORT`                     | Node.js / Bun 监听端口，默认 `3000`      |
 
 未配置持久化存储时，服务会使用内存缓存。完整变量示例见 [.env.example](.env.example)。
 
@@ -128,6 +163,8 @@ pnpm run check
 pnpm run dev          # Node.js 本地开发
 pnpm run dev:cf       # Wrangler 本地模拟 Cloudflare
 pnpm run test:run     # 运行测试
+pnpm run build:server # 构建 Node.js 生产服务
+pnpm run start:server # 运行已构建的 Node.js 服务
 ```
 
 ## 致谢
