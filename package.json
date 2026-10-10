@@ -28,7 +28,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "check": "pnpm run format:check && pnpm run check:homepage && pnpm run check:runtime-entries && pnpm run check:worker && pnpm run check:types && pnpm run test:run && pnpm run build",
+    "test:coverage": "vitest run --coverage",
+    "check": "pnpm run format:check && pnpm run check:homepage && pnpm run check:runtime-entries && pnpm run check:worker && pnpm run check:types && pnpm run test:coverage && pnpm run build",
     "check:worker": "node scripts/smoke-worker.mjs"
   },
   "engines": {
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.19.43",
+    "@vitest/coverage-v8": "^4.1.2",
     "esbuild": "0.27.7",
     "miniflare": "4.20260401.0",
     "prettier": "^3.4.2",
