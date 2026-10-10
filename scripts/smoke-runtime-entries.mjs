@@ -10,6 +10,12 @@ const entryChecks = [
         throw new Error('expected default export to be a function');
       }
     },
+    async smoke(mod) {
+      const response = await mod.default(new Request('http://runtime-smoke.local/'));
+      if (response.status !== 200) {
+        throw new Error(`expected Vercel Edge homepage status 200, got ${response.status}`);
+      }
+    },
   },
   {
     name: 'edgeone runtime entry',
@@ -17,6 +23,16 @@ const entryChecks = [
     validate(mod) {
       if (typeof mod.default !== 'function') {
         throw new Error('expected default export to be a function');
+      }
+    },
+    async smoke(mod) {
+      const response = await mod.default({
+        request: new Request('http://runtime-smoke.local/'),
+        env: { STORAGE_PROVIDER: 'memory' },
+        waitUntil() {},
+      });
+      if (response.status !== 200) {
+        throw new Error(`expected EdgeOne Edge homepage status 200, got ${response.status}`);
       }
     },
   },
@@ -43,8 +59,28 @@ const entryChecks = [
   },
 ];
 
-for (const entry of entryChecks) {
-  const mod = await import(entry.url);
-  entry.validate(mod);
-  console.log(`[runtime-smoke] ok: ${entry.name}`);
+const originalStorageProvider = process.env.STORAGE_PROVIDER;
+process.env.STORAGE_PROVIDER = 'memory';
+
+try {
+  for (const entry of entryChecks) {
+    const mod = await import(entry.url);
+    entry.validate(mod);
+    if (entry.smoke) await entry.smoke(mod);
+    console.log(`[runtime-smoke] ok: ${entry.name}`);
+  }
+
+  const { createNodeRuntime } = await import('../src/runtime/node.ts');
+  const nodeRuntime = await createNodeRuntime('node', { STORAGE_PROVIDER: 'memory' });
+  const nodeResponse = await nodeRuntime.app.fetch(new Request('http://runtime-smoke.local/'));
+  if (nodeResponse.status !== 200) {
+    throw new Error(`expected Node homepage status 200, got ${nodeResponse.status}`);
+  }
+  console.log('[runtime-smoke] ok: node runtime app');
+} finally {
+  if (originalStorageProvider === undefined) {
+    delete process.env.STORAGE_PROVIDER;
+  } else {
+    process.env.STORAGE_PROVIDER = originalStorageProvider;
+  }
 }
