@@ -193,6 +193,7 @@ pnpm dlx wrangler secret put INDIENOVA_COOKIE
 | `DISABLE_SEARCH`                | 是否禁用搜索                                                                                                                                             |
 | `CACHE_TTL`                     | 缓存 TTL，单位秒                                                                                                                                         |
 | `STORAGE_PROVIDER`              | `auto` / `memory` / `cloudflare-kv` / `vercel-redis` / `netlify-blobs` / `edgeone-kv` / `redis`                                                          |
+| `STORAGE_FAILURE_MODE`          | `degrade` / `fail-fast`；默认 `auto` 存储允许降级，显式存储配置失败时终止启动                                                                            |
 | `CACHE_STORE_NAME`              | 逻辑缓存名，默认 `pt-gen-cache`                                                                                                                          |
 | `RATE_LIMIT_MODE`               | `off` / `best-effort`；`off` 会强制关闭请求级限流                                                                                                        |
 | `RATE_LIMIT_PER_MINUTE`         | 请求级限流阈值，仅在 `RATE_LIMIT_MODE=best-effort` 时生效                                                                                                |
@@ -220,6 +221,8 @@ Rexxar 返回字段会随豆瓣当前页面状态变化。例如上游未提供 
 ### 当前默认策略
 
 - `STORAGE_PROVIDER=auto` 时按平台自动选择后端
+- `STORAGE_PROVIDER=auto` 初始化失败时默认降级到内存；显式选择 provider 时默认快速失败，可用 `STORAGE_FAILURE_MODE=degrade` 覆盖
+- `GET /health` 返回请求的存储、实际存储和降级状态，不包含连接信息
 - Cloudflare / EdgeOne 在未绑定 `PT_GEN_STORE` 但提供了 Upstash REST 变量时，会自动回退到 `vercel-redis`
 - Netlify 默认仍优先 `netlify-blobs`；如需改用 Upstash REST，请显式设置 `STORAGE_PROVIDER=vercel-redis`
 - `RATE_LIMIT_MODE` 默认 `off`，即使设置了 `RATE_LIMIT_PER_MINUTE` 也不会启用请求级限流

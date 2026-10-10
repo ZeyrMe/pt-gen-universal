@@ -11,11 +11,14 @@ export async function createEdgeOneRuntime(env: Record<string, unknown>) {
     createStorage: async (setup) => {
       switch (setup.storageProvider) {
         case 'edgeone-kv':
-          return env.PT_GEN_STORE ? new EdgeOneKVStorage(env.PT_GEN_STORE) : new MemoryStorage();
+          if (!env.PT_GEN_STORE) throw new Error('PT_GEN_STORE binding is required');
+          return new EdgeOneKVStorage(env.PT_GEN_STORE);
         case 'vercel-redis':
           return await VercelRedisStorage.fromEnv(setup.values);
-        default:
+        case 'memory':
           return new MemoryStorage();
+        default:
+          throw new Error(`Storage provider ${setup.storageProvider} is not supported on EdgeOne`);
       }
     },
     fallbackMessage: '[ptgen] Failed to initialize EdgeOne storage, falling back to memory.',

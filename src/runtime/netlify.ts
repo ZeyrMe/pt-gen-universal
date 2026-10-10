@@ -13,8 +13,10 @@ export async function createNetlifyRuntime(env: Record<string, unknown>) {
           return await NetlifyBlobsStorage.fromStoreName(setup.storeName);
         case 'vercel-redis':
           return await VercelRedisStorage.fromEnv(setup.values);
-        default:
+        case 'memory':
           return new MemoryStorage();
+        default:
+          throw new Error(`Storage provider ${setup.storageProvider} is not supported on Netlify`);
       }
     },
     fallbackMessage: '[ptgen] Failed to initialize Netlify storage, falling back to memory.',

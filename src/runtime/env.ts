@@ -1,4 +1,9 @@
-import type { AppConfig, RateLimitMode, StorageProvider } from '../../lib/types/config';
+import type {
+  AppConfig,
+  RateLimitMode,
+  StorageFailureMode,
+  StorageProvider,
+} from '../../lib/types/config';
 import { parseBooleanEnv, parseNumberEnv } from '../utils/env';
 import { createHomePage } from './page';
 
@@ -13,6 +18,8 @@ export interface RuntimeContext {
 export interface NormalizedRuntimeSetup {
   appConfig: AppConfig;
   port: number;
+  requestedStorageProvider: StorageProvider;
+  storageFailureMode: StorageFailureMode;
   storeName: string;
   storageProvider: StorageProvider;
   values: Record<string, string | undefined>;
@@ -82,6 +89,15 @@ export function parseRateLimitMode(value: unknown): RateLimitMode | undefined {
   return undefined;
 }
 
+export function parseStorageFailureMode(value: unknown): StorageFailureMode | undefined {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase();
+  if (!raw) return undefined;
+  if (raw === 'degrade' || raw === 'fail-fast') return raw;
+  return undefined;
+}
+
 function hasVercelRedisEnv(values: Record<string, string | undefined>): boolean {
   return Boolean(
     (values.KV_REST_API_URL && values.KV_REST_API_TOKEN) ||
@@ -132,6 +148,9 @@ export function createRuntimeSetup(context: RuntimeContext): NormalizedRuntimeSe
     context.bindings
   );
   const rateLimitMode = parseRateLimitMode(values.RATE_LIMIT_MODE) || 'off';
+  const storageFailureMode =
+    parseStorageFailureMode(values.STORAGE_FAILURE_MODE) ||
+    (requestedStorageProvider === 'auto' ? 'degrade' : 'fail-fast');
   const rateLimitPerMinute =
     rateLimitMode === 'best-effort' ? (parseNumberEnv(values.RATE_LIMIT_PER_MINUTE) ?? 0) : 0;
 
@@ -164,11 +183,20 @@ export function createRuntimeSetup(context: RuntimeContext): NormalizedRuntimeSe
     rateLimitMode,
     rateLimitPerMinute,
     storageProvider,
+    storageFailureMode,
+    runtimeStatus: {
+      platform: context.platform,
+      requestedStorageProvider,
+      effectiveStorageProvider: storageProvider,
+      storageDegraded: false,
+    },
   };
 
   return {
     appConfig,
     port: parseNumberEnv(values.PORT) ?? 3000,
+    requestedStorageProvider,
+    storageFailureMode,
     storeName: values.CACHE_STORE_NAME || 'pt-gen-cache',
     storageProvider,
     values,

@@ -39,6 +39,8 @@ export async function createRuntimeApp(
       setup,
     };
   } catch (error) {
+    if (setup.storageFailureMode === 'fail-fast') throw error;
+
     console.warn(options.fallbackMessage, error);
 
     const fallbackStorage = options.createFallbackStorage
@@ -50,6 +52,12 @@ export async function createRuntimeApp(
       appConfig: {
         ...setup.appConfig,
         storageProvider: 'memory',
+        runtimeStatus: {
+          platform: options.platform,
+          requestedStorageProvider: setup.requestedStorageProvider,
+          effectiveStorageProvider: 'memory',
+          storageDegraded: true,
+        },
       },
     };
 

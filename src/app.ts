@@ -227,6 +227,26 @@ function setupRoutes(app: Hono, v1: V1Controller, v2: V2Controller, htmlPage: st
   });
 }
 
+function setupHealthRoute(app: Hono, config: AppConfig) {
+  const requested =
+    config.runtimeStatus?.requestedStorageProvider || config.storageProvider || 'memory';
+  const effective =
+    config.runtimeStatus?.effectiveStorageProvider || config.storageProvider || 'memory';
+  const degraded = config.runtimeStatus?.storageDegraded === true;
+
+  app.get('/health', (c) =>
+    c.json({
+      status: degraded ? 'degraded' : 'ok',
+      platform: config.runtimeStatus?.platform || 'unknown',
+      storage: {
+        requested,
+        effective,
+        degraded,
+      },
+    })
+  );
+}
+
 /**
  * 创建 Hono 应用
  * @param {Storage} storage - 存储实现（KV 或 Memory）
@@ -267,6 +287,7 @@ export function createApp(storage: Storage, config: AppConfig = {}) {
 
   app.use('/api/*', createAuthMiddleware(config));
   app.use('/api/*', createCacheMiddleware(storage, cacheTTL, cacheVariant));
+  setupHealthRoute(app, config);
   setupRoutes(app, v1, v2, htmlPage);
 
   return app;

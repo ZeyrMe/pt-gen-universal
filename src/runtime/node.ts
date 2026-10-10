@@ -19,28 +19,20 @@ function createMemoryStorage(values: Record<string, string | undefined>) {
 }
 
 async function resolveNodeStorage(
-  platform: RuntimePlatform,
+  _platform: RuntimePlatform,
   values: Record<string, string | undefined>,
   storageProvider: string
 ): Promise<Storage> {
-  try {
-    switch (storageProvider) {
-      case 'redis':
-        if (!values.REDIS_URL) throw new Error('REDIS_URL is required for redis storage');
-        return await RedisStorage.fromUrl(values.REDIS_URL);
-      case 'vercel-redis':
-        return await VercelRedisStorage.fromEnv(values);
-      case 'memory':
-        return createMemoryStorage(values);
-      default:
-        return createMemoryStorage(values);
-    }
-  } catch (error) {
-    console.warn(
-      `[ptgen] Failed to initialize ${storageProvider} storage for ${platform}, falling back to memory.`,
-      error
-    );
-    return createMemoryStorage(values);
+  switch (storageProvider) {
+    case 'redis':
+      if (!values.REDIS_URL) throw new Error('REDIS_URL is required for redis storage');
+      return await RedisStorage.fromUrl(values.REDIS_URL);
+    case 'vercel-redis':
+      return await VercelRedisStorage.fromEnv(values);
+    case 'memory':
+      return createMemoryStorage(values);
+    default:
+      throw new Error(`Storage provider ${storageProvider} is not supported on Node/Bun`);
   }
 }
 

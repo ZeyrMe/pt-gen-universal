@@ -13,6 +13,14 @@ export type StorageProvider =
   | 'redis';
 
 export type RateLimitMode = 'off' | 'best-effort';
+export type StorageFailureMode = 'degrade' | 'fail-fast';
+
+export interface RuntimeStatus {
+  platform: string;
+  requestedStorageProvider: StorageProvider;
+  effectiveStorageProvider: StorageProvider;
+  storageDegraded: boolean;
+}
 
 export interface AppConfig {
   // 豆瓣配置
@@ -45,6 +53,8 @@ export interface AppConfig {
   rateLimitPerMinute?: number;
   rateLimitMode?: RateLimitMode;
   storageProvider?: StorageProvider;
+  storageFailureMode?: StorageFailureMode;
+  runtimeStatus?: RuntimeStatus;
 
   // 通用配置
   timeout?: number;

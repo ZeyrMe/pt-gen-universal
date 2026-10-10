@@ -169,6 +169,19 @@ describe('runtime env resolution', () => {
     expect(enabled.appConfig.rateLimitPerMinute).toBe(60);
   });
 
+  it('allows auto storage to degrade but makes explicit storage fail fast by default', () => {
+    const automatic = createRuntimeSetup({ platform: 'node', env: {} });
+    const explicit = createRuntimeSetup({
+      platform: 'node',
+      env: { STORAGE_PROVIDER: 'redis' },
+    });
+
+    expect(automatic.requestedStorageProvider).toBe('auto');
+    expect(automatic.storageFailureMode).toBe('degrade');
+    expect(explicit.requestedStorageProvider).toBe('redis');
+    expect(explicit.storageFailureMode).toBe('fail-fast');
+  });
+
   it('keeps /api-prefixed requests out of the Vercel catch-all rewrite', () => {
     const vercelConfig = JSON.parse(
       readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8')
