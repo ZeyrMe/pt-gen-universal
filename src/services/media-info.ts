@@ -28,6 +28,7 @@ export class MediaInfoService {
   private readonly bbcodeFormatter: BBCodeFormatter;
   private readonly markdownFormatter: MarkdownFormatter;
   private readonly imageCdnPrefix?: string;
+  private readonly inFlight = new Map<string, Promise<MediaResolveResult>>();
 
   constructor(
     private readonly orchestrator: Orchestrator,
@@ -39,22 +40,32 @@ export class MediaInfoService {
   }
 
   async resolve(locator: MediaLocator): Promise<MediaResolveResult> {
+    let site: string;
+    let sid: string;
+
     if (locator.url) {
-      const { site, sid } = this.orchestrator.matchUrl(locator.url);
-      const info = await this.orchestrator.getMediaInfo(site, sid);
-      return { site, sid, info };
+      ({ site, sid } = this.orchestrator.matchUrl(locator.url));
+    } else if (locator.site && locator.sid) {
+      site = locator.site;
+      sid = locator.sid;
+    } else {
+      throw new AppError(ErrorCode.INVALID_PARAM, "Missing 'url' or 'site/sid' parameters");
     }
 
-    if (locator.site && locator.sid) {
-      const info = await this.orchestrator.getMediaInfo(locator.site, locator.sid);
-      return {
-        site: locator.site,
-        sid: locator.sid,
-        info,
-      };
-    }
+    const key = JSON.stringify([site, sid]);
+    const existing = this.inFlight.get(key);
+    if (existing) return await existing;
 
-    throw new AppError(ErrorCode.INVALID_PARAM, "Missing 'url' or 'site/sid' parameters");
+    const pending = this.orchestrator.getMediaInfo(site, sid).then((info) => ({ site, sid, info }));
+    this.inFlight.set(key, pending);
+
+    try {
+      return await pending;
+    } finally {
+      if (this.inFlight.get(key) === pending) {
+        this.inFlight.delete(key);
+      }
+    }
   }
 
   renderFormats(info: MediaInfo): { bbcode: string; markdown: string; json: string } {

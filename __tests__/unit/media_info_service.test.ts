@@ -111,4 +111,55 @@ describe('MediaInfoService', () => {
 
     await expect(service.resolve({ site: 'douban', sid: '1292052' })).rejects.toThrow('boom');
   });
+
+  it('合并同一资源的并发抓取请求', async () => {
+    let complete!: (info: MediaInfo) => void;
+    const pending = new Promise<MediaInfo>((resolve) => {
+      complete = resolve;
+    });
+    const orchestrator = {
+      getMediaInfo: vi.fn().mockReturnValue(pending),
+    } as any;
+    const service = new MediaInfoService(orchestrator);
+
+    const first = service.resolve({ site: 'douban', sid: '1292052' });
+    const second = service.resolve({ site: 'douban', sid: '1292052' });
+
+    expect(orchestrator.getMediaInfo).toHaveBeenCalledOnce();
+    complete(fakeInfo);
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      { site: 'douban', sid: '1292052', info: fakeInfo },
+      { site: 'douban', sid: '1292052', info: fakeInfo },
+    ]);
+  });
+
+  it('失败后清理并发状态并允许下一次请求重试', async () => {
+    const orchestrator = {
+      getMediaInfo: vi
+        .fn()
+        .mockRejectedValueOnce(new Error('temporary'))
+        .mockResolvedValue(fakeInfo),
+    } as any;
+    const service = new MediaInfoService(orchestrator);
+
+    await expect(service.resolve({ site: 'douban', sid: '1292052' })).rejects.toThrow('temporary');
+    await expect(service.resolve({ site: 'douban', sid: '1292052' })).resolves.toMatchObject({
+      info: fakeInfo,
+    });
+    expect(orchestrator.getMediaInfo).toHaveBeenCalledTimes(2);
+  });
+
+  it('不会合并不同资源的并发请求', async () => {
+    const orchestrator = {
+      getMediaInfo: vi.fn().mockResolvedValue(fakeInfo),
+    } as any;
+    const service = new MediaInfoService(orchestrator);
+
+    await Promise.all([
+      service.resolve({ site: 'douban', sid: '1' }),
+      service.resolve({ site: 'douban', sid: '2' }),
+    ]);
+
+    expect(orchestrator.getMediaInfo).toHaveBeenCalledTimes(2);
+  });
 });
