@@ -70,5 +70,69 @@
       "entities": "^7.0.0",
       "undici": "^7.30.0"
     }
+  },
+  "cloudflare": {
+    "bindings": {
+      "APIKEY": {
+        "description": "可选：公网部署时用于保护 API 的访问密钥。"
+      },
+      "DISABLE_SEARCH": {
+        "description": "可选：设置为 true 可禁用搜索功能。"
+      },
+      "DOUBAN_COOKIE": {
+        "description": "可选：豆瓣 Cookie，用于提升受限网络环境下的抓取成功率。"
+      },
+      "DOUBAN_INCLUDE_REXXAR": {
+        "description": "可选：是否启用豆瓣移动端 Rexxar 补充数据，默认 true。"
+      },
+      "IMAGE_CDN_PREFIX": {
+        "description": "可选：海报代理入口，必须支持在末尾直接拼接原始图片 URL。"
+      },
+      "INDIENOVA_COOKIE": {
+        "description": "可选：Indienova Cookie，仅在抓取受限时使用。"
+      },
+      "TMDB_API_KEY": {
+        "description": "可选：使用 TMDB 搜索或详情功能时填写，从 themoviedb.org/settings/api 获取。"
+      },
+      "CACHE_TTL": {
+        "description": "可选：缓存过期时间，单位为秒，默认 172800。"
+      },
+      "STORAGE_PROVIDER": {
+        "description": "可选：缓存后端，可填 auto、memory 或 cloudflare-kv；默认 auto。"
+      },
+      "CACHE_STORE_NAME": {
+        "description": "可选：逻辑缓存名称，默认 pt-gen-cache。"
+      },
+      "RATE_LIMIT_MODE": {
+        "description": "可选：请求级限流模式，可填 off 或 best-effort，默认 off。"
+      },
+      "RATE_LIMIT_PER_MINUTE": {
+        "description": "可选：每分钟请求数，仅在 RATE_LIMIT_MODE=best-effort 时生效。"
+      },
+      "PROXY_URL": {
+        "description": "可选：抓取 URL 中转地址，适用于网络受限环境。"
+      },
+      "PROXY_ALLOW_SENSITIVE_HEADERS": {
+        "description": "可选：是否允许向可信中转服务转发 Cookie 或 Authorization，默认 false。"
+      },
+      "DOUBAN_USER_AGENT": {
+        "description": "可选：豆瓣请求 User-Agent。"
+      },
+      "DOUBAN_ACCEPT_LANGUAGE": {
+        "description": "可选：豆瓣请求 Accept-Language。"
+      },
+      "DOUBAN_TIMEOUT_MS": {
+        "description": "可选：豆瓣请求超时时间，单位为毫秒。"
+      },
+      "DOUBAN_WARMUP_TIMEOUT_MS": {
+        "description": "可选：豆瓣预热请求超时时间，单位为毫秒。"
+      },
+      "TMDB_USER_AGENT": {
+        "description": "可选：TMDB 请求 User-Agent。"
+      },
+      "TMDB_TIMEOUT_MS": {
+        "description": "可选：TMDB 请求超时时间，单位为毫秒。"
+      }
+    }
   }
 }
