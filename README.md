@@ -46,7 +46,7 @@ Cloudflare Workers、Vercel 和 EdgeOne 是推荐的部署目标。三者都提�
 
 ### 环境要求
 
-- Node.js `20.19.0+`
+- Node.js `24.x` (LTS)
 - pnpm `9.15.9`
 
 ```bash

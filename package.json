@@ -33,7 +33,7 @@
     "check:worker": "node scripts/smoke-worker.mjs"
   },
   "engines": {
-    "node": ">=20.19.0",
+    "node": "24.x",
     "pnpm": ">=9 <10"
   },
   "author": "YunFeng <YunFengZero@outlook.com>",
