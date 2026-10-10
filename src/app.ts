@@ -42,6 +42,12 @@ function createErrorHandler() {
       const details = err.details;
       const proxy_used =
         typeof (details as any)?.proxy_used === 'boolean' ? (details as any).proxy_used : false;
+      if (err.code === ErrorCode.UPSTREAM_THROTTLED) {
+        const retryAfterMs = Number((details as any)?.retry_after_ms);
+        if (Number.isFinite(retryAfterMs) && retryAfterMs >= 0) {
+          c.header('Retry-After', String(Math.max(1, Math.ceil(retryAfterMs / 1000))));
+        }
+      }
       return c.json(
         {
           error: {
