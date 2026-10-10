@@ -160,23 +160,6 @@
             padding: 0 1rem;
         }
 
-        .hero {
-            display: grid;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero h1 {
-            font-size: clamp(1.65rem, 2.1vw, 2.1rem);
-            line-height: 1.15;
-            text-wrap: balance;
-        }
-
-        .hero p {
-            color: var(--text-sub);
-            max-width: 62ch;
-        }
-
         /* Card Style */
         .card {
             background-color: var(--bg-card);
@@ -601,7 +584,7 @@
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
-            <span translate="no">PT <span>Gen</span></span>
+            PT <span>Gen</span>
         </div>
         <button class="theme-toggle" id="themeToggle" type="button" title="切换模式" aria-label="切换深色模式">
             <svg id="icon-sun" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -625,10 +608,6 @@
 
     <main id="main-content" tabindex="-1">
         <div class="card">
-            <div class="hero">
-                <h1 id="pageTitle">PT Gen 资源信息生成工具</h1>
-                <p>输入资源链接或关键词，快速生成适合 PT 站发布页使用的简介文本与结构化结果。</p>
-            </div>
             <div class="input-group">
                 <label class="sr-only" for="sourceSelect">选择数据源</label>
                 <select id="sourceSelect" class="source-select" name="source">
@@ -703,7 +682,6 @@
                     <li style="margin-bottom: 0.5rem;">点击查询按钮,等待结果生成</li>
                     <li style="margin-bottom: 0.5rem;">复制生成的简介信息到 PT 站发布页面</li>
                 </ol>
-                <p style="margin-bottom: 1rem;">Indienova 当前支持直接粘贴链接生成，暂不支持关键词搜索。</p>
                 <p style="margin-bottom: 0.5rem;"><strong style="color: var(--text-main);">支持的链接格式:</strong></p>
                 <ul style="padding-left: 1.5rem; list-style: disc;">
                     <li>豆瓣: <code
