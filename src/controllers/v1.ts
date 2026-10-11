@@ -96,7 +96,7 @@ export class V1Controller {
   }
 
   private toNameObjects(names: string[] | undefined): { name: string }[] | undefined {
-    if (!names) return names;
+    if (!names) return undefined;
     return names.map((n) => ({ name: n }));
   }
 
