@@ -13,3 +13,4 @@ node_modules/
 .wrangler/
 .env
 .dev.vars
+.DS_Store
