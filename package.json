@@ -18,7 +18,7 @@
     "build:server": "esbuild src/adapters/node.ts --bundle --platform=node --target=node24 --format=esm --packages=external --outfile=dist/server.mjs --sourcemap=external",
     "build:node": "pnpm run check:homepage && pnpm run check:types && pnpm run build:server",
     "build:cf": "wrangler deploy",
-    "build:vercel": "pnpm run check:homepage && pnpm run check:types",
+    "build:vercel": "pnpm run check:homepage && pnpm run check:types && esbuild app.ts --bundle --platform=node --target=node24 --format=esm --packages=external --outfile=app.js",
     "build:netlify": "pnpm run check:homepage && pnpm run check:types",
     "build:edgeone": "pnpm run check:homepage && pnpm run check:types",
     "start:bun": "bun src/adapters/bun.ts",
