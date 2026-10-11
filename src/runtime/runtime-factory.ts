@@ -1,4 +1,4 @@
-import { createApp } from '../app';
+import { createApp } from '../application';
 import { MemoryStorage } from '../storage/memory';
 import type { Storage } from '../storage/storage';
 import { createRuntimeSetup, type NormalizedRuntimeSetup, type RuntimePlatform } from './env';

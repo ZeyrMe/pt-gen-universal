@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createApp } from '../../src/app';
+import { createApp } from '../../src/application';
 import { MemoryStorage } from '../../src/storage/memory';
 import { rateLimiter } from '../../lib/utils/rate-limiter';
 import { AppError, ErrorCode } from '../../lib/errors';

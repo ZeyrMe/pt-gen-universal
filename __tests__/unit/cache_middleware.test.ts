@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Hono } from 'hono';
-import { createCacheMiddleware, type Storage } from '../../src/app';
+import { createCacheMiddleware, type Storage } from '../../src/application';
 import { CTX_CACHEABLE } from '../../src/utils/context';
 
 class TestStorage implements Storage {

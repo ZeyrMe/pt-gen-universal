@@ -48,7 +48,7 @@ https://你的域名/api/v2/info/douban/1292052
 
 ### 一键部署
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal&env=APIKEY,TMDB_API_KEY,UPSTASH_REDIS_REST_URL,UPSTASH_REDIS_REST_TOKEN,DOUBAN_COOKIE,INDIENOVA_COOKIE&envDescription=PT-Gen%20%E8%BF%90%E8%A1%8C%E6%89%80%E9%9C%80%E7%9A%84%20API%20%E5%AF%86%E9%92%A5%E3%80%81Redis%20REST%20%E5%8F%8A%20Cookie&envLink=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal%23%E9%85%8D%E7%BD%AE)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal)
 
 点击按钮后进入 Vercel 的 **New Project** 页面。页面会显示正在从 GitHub 克隆 `ZeyrMe/pt-gen-universal` 的 `master` 分支。
 
@@ -58,18 +58,18 @@ https://你的域名/api/v2/info/douban/1292052
 - **Private Repository Name**：填写要创建的仓库名称；根据右侧开关确定目前的仓库状态为私有还是公开。
 - **Vercel Team**：选择部署到个人项目或团队。
 
-点击 **Create** 后进入第二步 **Add Environment Variables**。部署按钮会预先填好变量名，直接填写对应的 **Value**：
+点击 **Create** 完成项目创建。当前一键部署按钮不预置环境变量，因此不会要求填写并不一定需要的配置。
 
-| 变量名                     | 填写内容                                      |
-| -------------------------- | --------------------------------------------- |
-| `APIKEY`                   | 自行设置的 API 访问密钥                       |
-| `TMDB_API_KEY`             | TMDB API 密钥；不使用 TMDB 时留空             |
-| `UPSTASH_REDIS_REST_URL`   | Upstash Redis REST 地址；不使用 Redis 时留空  |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST Token；不使用 Redis 时留空 |
-| `DOUBAN_COOKIE`            | 豆瓣 Cookie；不需要时留空                     |
-| `INDIENOVA_COOKIE`         | Indienova Cookie；不需要时留空                |
+部署完成后，如需配置 API Key、TMDB、Redis 或 Cookie，进入项目的 **Settings -> Environment Variables**，按需添加：
 
-填写完成后点击页面底部的 **Deploy**。Vercel 会自动安装依赖并完成构建。
+- `APIKEY`
+- `TMDB_API_KEY`
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+- `DOUBAN_COOKIE`
+- `INDIENOVA_COOKIE`
+
+如果 Vercel Marketplace 提供的是 `KV_REST_API_URL` 和 `KV_REST_API_TOKEN`，添加这两个变量即可，不需要再添加 Upstash 变量。保存环境变量后重新部署项目。
 
 ### 验证部署
 

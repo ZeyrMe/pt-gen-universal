@@ -4,9 +4,11 @@
     "types": ["html2bbcode", "node"]
   },
   "include": [
+    "app.ts",
     "src/adapters/node.ts",
     "src/adapters/bun.ts",
     "src/runtime/node.ts",
+    "src/runtime/vercel.ts",
     "src/storage/redis.ts"
   ]
 }

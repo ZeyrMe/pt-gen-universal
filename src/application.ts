@@ -254,7 +254,7 @@ function setupHealthRoute(app: Hono, config: AppConfig) {
 }
 
 /**
- * 创建 Hono 应用
+ * 创建共享 Hono 应用
  * @param {Storage} storage - 存储实现（KV 或 Memory）
  * @param {Object} config - 配置对象
  */

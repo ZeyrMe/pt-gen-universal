@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createApp } from '../../src/app';
+import { createApp } from '../../src/application';
 import { MemoryStorage } from '../../src/storage/memory';
 
 describe('proxy_used in v2 error details', () => {

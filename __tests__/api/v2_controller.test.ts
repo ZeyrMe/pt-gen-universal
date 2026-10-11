@@ -7,7 +7,7 @@ import type { MediaInfoService } from '../../src/services/media-info';
 function makeTestApp(v2: V2Controller) {
   const app = new Hono();
 
-  // Match src/app.ts error shape for v2.
+  // Match src/application.ts error shape for v2.
   app.onError((err, c) => {
     if (err instanceof AppError) {
       return c.json(

@@ -1,19 +1,32 @@
 const entryChecks = [
   {
-    name: 'vercel api route',
-    url: new URL('../api/[[...route]].ts', import.meta.url),
+    name: 'vercel hono app',
+    url: new URL('../app.ts', import.meta.url),
     validate(mod) {
-      if (mod.config?.runtime !== 'edge') {
-        throw new Error('expected config.runtime to be "edge"');
-      }
-      if (typeof mod.default !== 'function') {
-        throw new Error('expected default export to be a function');
+      if (!mod.default || typeof mod.default.fetch !== 'function') {
+        throw new Error('expected default export to be a Hono app');
       }
     },
     async smoke(mod) {
-      const response = await mod.default(new Request('http://runtime-smoke.local/'));
-      if (response.status !== 200) {
-        throw new Error(`expected Vercel Edge homepage status 200, got ${response.status}`);
+      const homepage = await mod.default.fetch(new Request('http://runtime-smoke.local/'));
+      if (homepage.status !== 200) {
+        throw new Error(`expected Vercel homepage status 200, got ${homepage.status}`);
+      }
+
+      const health = await mod.default.fetch(new Request('http://runtime-smoke.local/health'));
+      if (health.status !== 200) {
+        throw new Error(`expected Vercel health status 200, got ${health.status}`);
+      }
+      const healthBody = await health.json();
+      if (healthBody.platform !== 'vercel') {
+        throw new Error(`expected Vercel platform metadata, got ${healthBody.platform}`);
+      }
+
+      const apiResponse = await mod.default.fetch(
+        new Request('http://runtime-smoke.local/api/v2/info/unsupported/123')
+      );
+      if (apiResponse.status !== 400) {
+        throw new Error(`expected Vercel multi-segment API status 400, got ${apiResponse.status}`);
       }
     },
   },

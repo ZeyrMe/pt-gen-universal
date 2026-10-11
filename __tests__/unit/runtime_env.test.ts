@@ -182,22 +182,11 @@ describe('runtime env resolution', () => {
     expect(explicit.storageFailureMode).toBe('fail-fast');
   });
 
-  it('keeps /api-prefixed requests out of the Vercel catch-all rewrite', () => {
+  it('leaves Vercel routing to the native Hono integration', () => {
     const vercelConfig = JSON.parse(
       readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8')
-    ) as {
-      rewrites: Array<{ source: string; destination: string }>;
-    };
+    ) as Record<string, unknown>;
 
-    expect(vercelConfig.rewrites).toEqual([
-      {
-        source: '/api/:path*',
-        destination: '/api/:path*',
-      },
-      {
-        source: '/:path*',
-        destination: '/api/:path*',
-      },
-    ]);
+    expect(vercelConfig).not.toHaveProperty('rewrites');
   });
 });

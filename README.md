@@ -10,7 +10,7 @@
 - 提供 JSON、BBCode、Markdown 三种输出格式
 - 兼容 V1 API，同时提供统一的 V2 API
 - 支持海报代理、缓存、API Key 和请求限流
-- 支持 Cloudflare Workers、Vercel 和 EdgeOne 等 Edge 平台
+- 支持 Cloudflare Workers、Vercel、EdgeOne、Node.js 和 Bun 等运行环境
 
 ## 支持来源
 
@@ -26,21 +26,21 @@
 
 ## 部署
 
-Cloudflare Workers、Vercel 和 EdgeOne 是不错的一键部署平台。三者都提供适合轻量部署的 Edge 运行环境，并有适合个人项目的免费额度。
+Cloudflare Workers、Vercel 和 EdgeOne 是不错的一键部署平台，并有适合个人项目的免费额度。
 
 完整部署与配置流程请参阅 [部署与配置指南](docs/deployment.md)。
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ZeyrMe/pt-gen-universal)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal&env=APIKEY,TMDB_API_KEY,UPSTASH_REDIS_REST_URL,UPSTASH_REDIS_REST_TOKEN,DOUBAN_COOKIE,INDIENOVA_COOKIE&envDescription=PT-Gen%20%E8%BF%90%E8%A1%8C%E6%89%80%E9%9C%80%E7%9A%84%20API%20%E5%AF%86%E9%92%A5%E3%80%81Redis%20REST%20%E5%8F%8A%20Cookie&envLink=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal%23%E9%85%8D%E7%BD%AE)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal)
 
 [![Use EdgeOne Pages to deploy](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?repository-url=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal&install-command=npx%20pnpm%409.15.9%20install%20--frozen-lockfile&build-command=npx%20pnpm%409.15.9%20run%20build%3Aedgeone&output-directory=.)
 
-| 平台               | 运行时 | 推荐存储      |
-| ------------------ | ------ | ------------- |
-| Cloudflare Workers | Edge   | Cloudflare KV |
-| Vercel             | Edge   | Upstash Redis |
-| EdgeOne            | Edge   | Pages KV      |
+| 平台               | 运行时     | 推荐存储      |
+| ------------------ | ---------- | ------------- |
+| Cloudflare Workers | Edge       | Cloudflare KV |
+| Vercel             | Node.js 24 | Upstash Redis |
+| EdgeOne            | Edge       | Pages KV      |
 
 项目同时也提供了 Netlify Edge、Node.js 和 Bun 的支持，可自行进行配置和部署。
 

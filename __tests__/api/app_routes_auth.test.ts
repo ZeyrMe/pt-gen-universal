@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AppConfig } from '../../lib/types/config';
-import { createApp } from '../../src/app';
+import { createApp } from '../../src/application';
 import { MemoryStorage } from '../../src/storage/memory';
 import { createHomePage } from '../../src/runtime/page';
 

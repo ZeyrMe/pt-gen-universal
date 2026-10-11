@@ -5,8 +5,7 @@
   },
   "include": [
     "lib",
-    "src/app.ts",
-    "src/index.ts",
+    "src/application.ts",
     "src/registry.ts",
     "src/adapters/cloudflare.ts",
     "src/cache",
@@ -19,7 +18,6 @@
     "src/runtime/page.ts",
     "src/runtime/page.static.ts",
     "src/runtime/runtime-factory.ts",
-    "src/runtime/vercel.ts",
     "src/services",
     "src/sites",
     "src/storage/cloudflare.ts",
@@ -29,7 +27,6 @@
     "src/storage/storage.ts",
     "src/storage/vercel-redis.ts",
     "src/utils",
-    "api",
     "edge-functions",
     "netlify/edge-functions"
   ]
