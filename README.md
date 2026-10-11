@@ -26,7 +26,7 @@
 
 ## 部署
 
-Cloudflare Workers、Vercel 和 EdgeOne 是推荐的部署目标。三者都提供适合轻量部署的 Edge 运行环境，并有适合个人项目的免费额度。
+Cloudflare Workers、Vercel 和 EdgeOne 是不错的一键部署平台。三者都提供适合轻量部署的 Edge 运行环境，并有适合个人项目的免费额度。
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ZeyrMe/pt-gen-universal)
 
