@@ -1,6 +1,6 @@
 {
   "name": "pt-gen-universal",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "PT-Gen on server and serverless platforms",
   "packageManager": "pnpm@9.15.9",
   "main": "src/adapters/node.ts",
