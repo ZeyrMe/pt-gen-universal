@@ -50,17 +50,17 @@ https://你的域名/api/v2/info/douban/1292052
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FZeyrMe%2Fpt-gen-universal)
 
-点击按钮后进入 Vercel 的 **New Project** 页面。页面会显示正在从 GitHub 克隆 `ZeyrMe/pt-gen-universal` 的 `master` 分支。
+点击按钮后进入 Vercel 的 **New Project** 页面。页面会显示正在从 GitHub 导入 `ZeyrMe/pt-gen-universal` 仓库。
 
 先确认以下项目：
 
 - **Git Scope**：选择要使用的 GitHub 账号或组织。
-- **Private Repository Name**：填写要创建的仓库名称；根据右侧开关确定目前的仓库状态为私有还是公开。
+- **Repository Name**：确认要导入的仓库名称；如果使用 Vercel 的 Clone 流程创建仓库，按页面提示确认仓库可见性。
 - **Vercel Team**：选择部署到个人项目或团队。
 
-点击 **Create** 完成项目创建。当前一键部署按钮不预置环境变量，因此不会要求填写并不一定需要的配置。
+确认项目设置后，点击 **Deploy** 完成项目创建和首次部署。一键部署按钮不会预置环境变量，因此这一步不会要求填写可选配置。
 
-部署完成后，如需配置 API Key、TMDB、Redis 或 Cookie，进入项目的 **Settings -> Environment Variables**，按需添加：
+部署完成后，如需配置 API Key、TMDB、Redis 或 Cookie，打开该项目的 **Settings -> Environment Variables**，在页面的 **Add New** 区域逐项添加：
 
 - `APIKEY`
 - `TMDB_API_KEY`
@@ -71,6 +71,10 @@ https://你的域名/api/v2/info/douban/1292052
 
 如果 Vercel Marketplace 提供的是 `KV_REST_API_URL` 和 `KV_REST_API_TOKEN`，添加这两个变量即可，不需要再添加 Upstash 变量。保存环境变量后重新部署项目。
 
+Vercel 会按环境区分变量，添加变量时根据用途选择 **Production**、**Preview** 或 **Development**。修改生产环境变量后，需要重新部署才能让新的值进入生产 Function。
+
+如需绑定自己的域名，打开项目的 **Settings -> Domains**，点击 **Add Domain**，输入域名并按 Vercel 页面显示的 DNS 记录完成解析。域名的配置和证书状态也可以在这个页面继续查看。
+
 ### 验证部署
 
 打开 Vercel 生成的项目域名，确认首页可以显示；然后访问：
@@ -79,7 +83,12 @@ https://你的域名/api/v2/info/douban/1292052
 https://你的域名/api/v2/search?q=肖申克&source=douban
 ```
 
-如果中国大陆无法访问 Vercel 自带域名，可以在 **Settings -> Domains** 中添加自己的域名，再使用自定义域名访问。
+如果中国大陆无法访问 Vercel 自带域名，可以按上面的 **Settings -> Domains -> Add Domain** 流程添加自己的域名，再使用自定义域名访问。
+
+官方文档：
+
+- [Managing Environment Variables](https://vercel.com/docs/environment-variables/managing-environment-variables)
+- [Adding and Configuring a Custom Domain](https://vercel.com/docs/domains/working-with-domains/add-a-domain)
 
 ## EdgeOne Pages
 

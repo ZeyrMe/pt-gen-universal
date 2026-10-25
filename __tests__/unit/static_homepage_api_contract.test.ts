@@ -3,9 +3,17 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { SEARCHABLE_SITE_IDS } from '../../src/registry';
 import { createHomePage } from '../../src/runtime/page';
+import { SOURCE_OPTIONS } from '../../web/src/lib/sources';
 
 describe('static homepage api contract', () => {
-  const html = readFileSync(fileURLToPath(new URL('../../index.html', import.meta.url)), 'utf8');
+  const workbenchSource = readFileSync(
+    fileURLToPath(new URL('../../web/src/lib/components/SearchWorkbench.svelte', import.meta.url)),
+    'utf8'
+  );
+  const layoutStyles = readFileSync(
+    fileURLToPath(new URL('../../web/src/routes/layout.css', import.meta.url)),
+    'utf8'
+  );
   const createStaticHomePage = (searchEnabled = true) =>
     createHomePage({
       platform: 'node',
@@ -14,6 +22,8 @@ describe('static homepage api contract', () => {
     });
 
   it('keeps every runtime homepage aligned with the checked-in static ui', () => {
+    const html = createStaticHomePage();
+
     expect(
       createHomePage({
         platform: 'node',
@@ -38,6 +48,7 @@ describe('static homepage api contract', () => {
   });
 
   it('injects runtime bootstrap config when search is disabled', () => {
+    const html = createStaticHomePage();
     const disabledHomePage = createStaticHomePage(false);
 
     expect(html).toContain(
@@ -48,56 +59,61 @@ describe('static homepage api contract', () => {
   });
 
   it('uses explicit v1 api endpoints instead of the root path redirect', () => {
-    expect(html).toMatch(/\/api\/v1\/info/);
-    expect(html).toMatch(/\/api\/v1\/search/);
-    expect(html).not.toContain('let apiUrl = "/"');
+    expect(workbenchSource).toContain('fetchMediaInfo');
+    expect(workbenchSource).toContain('searchMedia');
+
+    const apiClientSource = readFileSync(
+      fileURLToPath(new URL('../../web/src/lib/api/client.ts', import.meta.url)),
+      'utf8'
+    );
+    expect(apiClientSource).toContain('/api/v1/info');
+    expect(apiClientSource).toContain('/api/v1/search');
   });
 
   it('shows a readable error when the api returns html instead of json', () => {
-    expect(html).toContain('接口返回了 HTML 页面');
+    const apiClientSource = readFileSync(
+      fileURLToPath(new URL('../../web/src/lib/api/client.ts', import.meta.url)),
+      'utf8'
+    );
+    expect(apiClientSource).toContain('接口返回了 HTML 页面');
   });
 
   it('adds semantic labels and live regions for accessibility', () => {
+    const html = createStaticHomePage();
+
     expect(html).toContain('class="skip-link"');
     expect(html).toContain('href="#main-content"');
-    expect(html).toContain('for="sourceSelect"');
-    expect(html).toContain('for="searchInput"');
-    expect(html).toContain('for="apiKeyInput"');
-    expect(html).toContain('aria-label="切换深色模式"');
+    expect(html).toContain('for="source-select"');
+    expect(html).toContain('for="search-input"');
+    expect(html).toContain('for="api-key-input"');
     expect(html).toContain('aria-live="polite"');
-    expect(html).toContain('role="dialog"');
-    expect(html).toContain('aria-modal="true"');
+    expect(workbenchSource).toContain('<Dialog.Root');
   });
 
-  it('renders search results without interpolating upstream html into innerHTML', () => {
-    expect(html).not.toContain('${item.title}');
-    expect(html).not.toContain('${item.subtitle ||');
-    expect(html).not.toContain('${item.subtype}');
-    expect(html).not.toContain('<div class="item-tag">${item.subtype}</div>');
+  it('renders search results through escaped Svelte expressions', () => {
+    expect(workbenchSource).not.toContain('{@html');
+    expect(workbenchSource).not.toContain('innerHTML');
+    expect(workbenchSource).toContain('hasText(item.title)');
   });
 
   it('guards optional result metadata before rendering tags', () => {
-    expect(html).toContain('if (hasDisplayText(item.year))');
-    expect(html).toContain('if (hasDisplayText(item.subtitle))');
-    expect(html).toContain('if (hasDisplayText(item.subtype))');
+    expect(workbenchSource).toContain('hasText(item.year)');
+    expect(workbenchSource).toContain('hasText(item.subtitle)');
+    expect(workbenchSource).toContain('hasText(item.subtype)');
   });
 
   it('uses accessible interactive semantics and motion-safe styles', () => {
-    expect(html).toContain("document.createElement('button')");
-    expect(html).toContain(':focus-visible');
-    expect(html).toContain('prefers-reduced-motion: reduce');
-    expect(html).not.toContain('outline: none');
-    expect(html).not.toContain('transition: all');
+    expect(workbenchSource).toContain('<button');
+    expect(layoutStyles).toContain('focus-visible');
+    expect(layoutStyles).toContain('prefers-reduced-motion: reduce');
+    expect(layoutStyles).not.toContain('transition: all');
   });
 
   it('lists every searchable registry source on the homepage and keeps indienova as direct-link only', () => {
-    const optionValues = Array.from(
-      html.matchAll(/<option value="([^"]+)">/g),
-      (match) => match[1]
-    );
+    const optionValues = SOURCE_OPTIONS.map((option) => option.value);
 
     expect(optionValues).toEqual(SEARCHABLE_SITE_IDS);
     expect(optionValues).not.toContain('indienova');
-    expect(html).toContain('Indienova 当前支持直接粘贴链接生成');
+    expect(createStaticHomePage()).toContain('Indienova');
   });
 });

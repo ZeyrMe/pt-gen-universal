@@ -10,6 +10,7 @@
 - 提供 JSON、BBCode、Markdown 三种输出格式
 - 兼容 V1 API，同时提供统一的 V2 API
 - 支持海报代理、缓存、API Key 和请求限流
+- 提供基于 SvelteKit、Tailwind CSS 和 shadcn-svelte 的响应式界面
 - 支持 Cloudflare Workers、Vercel、EdgeOne、Node.js 和 Bun 等运行环境
 
 ## 支持来源
@@ -162,12 +163,18 @@ pnpm run check
 常用命令：
 
 ```bash
-pnpm run dev          # Node.js 本地开发
-pnpm run dev:cf       # Wrangler 本地模拟 Cloudflare
-pnpm run test:run     # 运行测试
-pnpm run build:server # 构建 Node.js 生产服务
-pnpm run start:server # 运行已构建的 Node.js 服务
+pnpm run dev               # Node.js 本地开发，使用已生成的前端
+pnpm run dev:web           # SvelteKit 前端开发服务器，API 代理到 :3000
+pnpm run generate:homepage # 构建前端并更新服务端嵌入页面
+pnpm run dev:cf            # Wrangler 本地模拟 Cloudflare
+pnpm run test:run          # 运行测试
+pnpm run build:server      # 构建 Node.js 生产服务
+pnpm run start:server      # 运行已构建的 Node.js 服务
 ```
+
+前端源码位于 `web/`。生产构建使用 `adapter-static` 和内联 bundle，生成单个自包含的
+`web/build/index.html`，随后由 `scripts/generate-homepage.mjs` 写入
+`src/runtime/page.static.ts`，供所有运行时使用。
 
 ## 致谢
 
