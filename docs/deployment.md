@@ -146,9 +146,23 @@ cp .env.example .env
 
 根据需要编辑 `.env`，然后启动：
 
+生产部署默认从 GHCR 拉取固定版本的多架构镜像：
+
 ```bash
-docker compose up --build -d
+docker compose up -d
 ```
+
+默认使用 `ghcr.io/zeyrme/pt-gen-universal:2.0.1`。更新版本时，可以在 `.env` 中设置
+`PT_GEN_VERSION`，例如 `PT_GEN_VERSION=2.0.1`。
+
+如果需要使用当前源码重新构建镜像，使用开发配置：
+
+```bash
+docker compose -f compose.yaml -f docker-compose.dev.yaml up --build -d
+```
+
+默认只绑定 `127.0.0.1:3000`。如果需要让局域网或公网访问，在 `.env` 中设置
+`PT_GEN_BIND_ADDRESS=0.0.0.0`；如果需要修改宿主机端口，设置 `PT_GEN_HOST_PORT`。
 
 `compose.yaml` 会自动启动应用和 Redis，并将应用连接到 `redis://redis:6379`。不要把这个地址改成 `redis://127.0.0.1:6379`。
 
@@ -170,7 +184,8 @@ docker compose logs -f app
 更新服务：
 
 ```bash
-docker compose up --build -d
+docker compose pull
+docker compose up -d
 ```
 
 停止服务并保留 Redis 数据：

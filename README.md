@@ -89,7 +89,24 @@ PORT=3000
 
 ### Docker
 
-Docker 使用 Node.js 24 `bookworm-slim` 镜像，通过多阶段构建生成生产镜像：
+Docker Compose 默认从 GHCR 拉取固定版本的生产镜像：
+
+```bash
+cp .env.example .env
+docker compose up -d
+```
+
+默认监听 `127.0.0.1:3000`。如需从局域网或公网访问，可在 `.env` 中设置
+`PT_GEN_BIND_ADDRESS=0.0.0.0`；如需修改宿主机端口，设置 `PT_GEN_HOST_PORT`。
+需要切换版本时，设置 `PT_GEN_VERSION`，例如 `PT_GEN_VERSION=2.0.1`。
+
+本地修改 Dockerfile 或前端后，使用开发 Compose 配置重新构建：
+
+```bash
+docker compose -f compose.yaml -f docker-compose.dev.yaml up --build
+```
+
+如需直接构建单独的生产镜像，Dockerfile 使用 Node.js 24 `bookworm-slim` 镜像，通过多阶段构建生成：
 
 ```bash
 docker build -t pt-gen-universal .
@@ -99,7 +116,7 @@ docker run --env-file .env -p 3000:3000 pt-gen-universal
 容器默认使用 `0.0.0.0:3000`，并通过 `/health` 进行健康检查。需要 Redis 时，可以使用仓库中的 Compose 配置：
 
 ```bash
-docker compose up --build
+docker compose up -d
 ```
 
 Redis 作为独立服务运行；不配置 Redis 时，应用仍会回退到内存缓存。不要把 `.env` 或其他密钥复制进镜像。

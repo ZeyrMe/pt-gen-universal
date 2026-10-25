@@ -1,8 +1,10 @@
 services:
   app:
-    build: .
+    image: ghcr.io/zeyrme/pt-gen-universal:${PT_GEN_VERSION:-2.0.1}
+    pull_policy: missing
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${PT_GEN_BIND_ADDRESS:-127.0.0.1}:${PT_GEN_HOST_PORT:-3000}:3000"
     env_file:
       - .env
     environment:
@@ -16,7 +18,8 @@ services:
         condition: service_healthy
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
+    restart: unless-stopped
     volumes:
       - redis-data:/data
     healthcheck:

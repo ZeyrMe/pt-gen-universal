@@ -6,5 +6,9 @@ coverage
 .env
 .env.*
 !.env.example
+web/.svelte-kit
+web/build
+.code-review-graph
+.wrangler
 *.log
 .DS_Store

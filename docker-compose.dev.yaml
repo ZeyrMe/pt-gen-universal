@@ -1,0 +1,7 @@
+services:
+  app:
+    image: pt-gen-universal:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      pull: false
