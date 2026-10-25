@@ -6,12 +6,15 @@ WORKDIR /app
 
 RUN npm install --global pnpm@9.15.9
 
-COPY package.json pnpm-lock.yaml ./
+# Include the workspace manifest and frontend package manifest so the image
+# can validate and rebuild the SvelteKit static frontend before bundling Node.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY web/package.json web/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN pnpm run build:server
+RUN pnpm run build:node
 RUN pnpm prune --prod
 
 
